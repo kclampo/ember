@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.0 · **249 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.0 · **253 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -44,7 +44,7 @@ tenth time. One needs memory, the other needs amnesia. Do not unify them.
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
 | **The Menu** | Games | 66 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 60 | escalates by round |
+| **Truth or Dare** | Games | 64 | escalates by round |
 | **Kindling** | Games | 75 | Spark → Flame → Blaze |
 
 ### Tier labels are per-deck
