@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#16110f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Ember" />
+<title>Ember</title>
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icon.svg" />
+<link rel="icon" href="./icon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+<main id="app">
+
+  <header class="bar">
+    <div class="brand">
+      <span class="flame" aria-hidden="true"></span>
+      <h1>Ember</h1>
+    </div>
+    <span id="version" class="ver">v—</span>
+  </header>
+
+  <!-- ---------------------------------------------------- SETUP -->
+  <section id="setup" class="panel">
+
+    <label class="lbl" for="deckSel">Deck</label>
+    <select id="deckSel" class="sel"></select>
+    <p id="deckBlurb" class="blurb"></p>
+
+    <div id="tdWrap" class="sub" hidden>
+      <label class="lbl">Round type</label>
+      <div class="seg" id="tdSeg">
+        <button class="segbtn on" data-td="mix">Mix</button>
+        <button class="segbtn" data-td="truth">Truth</button>
+        <button class="segbtn" data-td="dare">Dare</button>
+      </div>
+    </div>
+
+    <label class="lbl">Heat</label>
+    <div class="seg" id="heatSeg">
+      <button class="segbtn" data-heat="1">Warm</button>
+      <button class="segbtn on" data-heat="2">Hot</button>
+      <button class="segbtn" data-heat="3">Hottest</button>
+    </div>
+    <p class="hint">Pressing a heat level includes everything below it. Nothing above it can appear.</p>
+
+    <div class="who">
+      <button id="himBtn" class="whoBtn him"><span class="wholbl">HIM</span><span class="whosub">draw for Kevin</span></button>
+      <button id="herBtn" class="whoBtn her"><span class="wholbl">HER</span><span class="whosub">draw for Denise</span></button>
+    </div>
+
+    <div class="meta">
+      <span id="remain"></span>
+      <button id="resetBtn" class="link">reset seen</button>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------- CARD -->
+  <section id="cardView" class="panel" hidden>
+    <div class="cardTop">
+      <span id="cardWho" class="whoTag"></span>
+      <span id="cardTier" class="tierTag"></span>
+    </div>
+
+    <p id="cardQ" class="q"></p>
+
+    <div id="cardOpts" class="opts" hidden></div>
+    <div id="cardScale" class="scale" hidden></div>
+
+    <div class="cardActions">
+      <button id="passBtn" class="pass">PASS</button>
+      <button id="doneBtn" class="done">DONE</button>
+    </div>
+    <p class="hint2">Pass costs nothing and needs no reason. There is no score.</p>
+  </section>
+
+  <!-- ---------------------------------------------------- EMPTY -->
+  <section id="emptyView" class="panel" hidden>
+    <p class="q">That deck is spent at this heat.</p>
+    <button id="againBtn" class="done wide">Reset and start over</button>
+  </section>
+
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
