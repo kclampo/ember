@@ -152,7 +152,8 @@ body {
   text-transform: uppercase; color: var(--hot2);
 }
 
-/* what the other partner already answered on this same card */
+/* what the other partner answered — shown ONLY after you have committed
+   your own answer. Never at draw time. */
 .partner {
   margin: 16px 0 0;
   padding: 11px 13px;
@@ -161,6 +162,25 @@ body {
   border-radius: 0 8px 8px 0;
   font-size: 13.5px; line-height: 1.4; color: var(--ink);
 }
+.partner .prow { display: flex; gap: 9px; align-items: baseline; }
+.partner .prow + .prow { margin-top: 5px; }
+.partner .plbl {
+  flex: none; min-width: 52px;
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim);
+}
+.partner .ptxt { color: var(--ink); }
+.partner .verdict {
+  margin-top: 10px; padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  font-size: 10.5px; font-weight: 800; letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.partner .verdict.match,
+.partner .verdict.scaleMatch { color: var(--hot2); }
+.partner .verdict.close,
+.partner .verdict.scaleClose { color: var(--her); }
+.partner .verdict.bothMaybe { color: var(--dim); }
 
 /* answer controls */
 .opts { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }

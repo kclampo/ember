@@ -43,7 +43,7 @@ else
 fi
 
 echo "== required files =="
-for f in index.html styles.css app.js deck.js version.js sw.js manifest.json icon.svg; do
+for f in index.html styles.css app.js deck.js audio.js version.js sw.js manifest.json icon.svg; do
   [ -f "$f" ] && echo "  OK   $f" || { echo "  MISSING $f"; fail=1; }
 done
 

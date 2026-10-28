@@ -2,7 +2,7 @@
 
 A deck for two. Five games, three heat tiers, on-device only.
 
-**Product name:** Ember · **Version:** 1.1.0 · **170 cards**
+**Product name:** Ember · **Version:** 1.2.0 · **170 cards** · **repo:** `kclampo/ember`
 
 ---
 
@@ -82,20 +82,52 @@ the instruction *is* the content.
 
 ---
 
-## ⭐ The overlap mechanic
+## ⭐ The overlap mechanic — and the reveal gate
 
-`seen` is tracked **per person**. A card answered by one partner stays live for
-the other — and when the second person draws it, the app shows what the first
-one said:
+`seen` and `answers` are tracked **per person**. A card answered by one partner
+stays live for the other, and **a card one of you has already answered is
+promoted to the front of the other's draw queue.** With 170 cards a purely
+random draw would almost never put both of you on the same card, and the
+comparison — the entire point — would never fire.
 
-> **DENISE**
-> **WOULD YOU WANT THIS?**
-> Being told no, and made to wait for it.
-> 💗 *Kevin already answered this: Maybe*
+> ⛔ **The reveal is gated.** You never see your partner's answer until you have
+> pressed **DONE** on your own answer. Showing her answer at draw time does not
+> reveal a comparison, it manufactures one — you would be answering *into* her
+> answer. (Kevin, 2026-10-27: *"the reveal should only be after we both answer a
+> card."*)
 
-**This is the payoff.** Individually the answers are just answers; the reason to
+So the flow is:
+
+**HIM** draws → answers → **DONE** → **HER** draws the same card → answers →
+**DONE** → both answers appear side by side.
+
+### The four outcomes
+
+| Outcome | When | Sound |
+|---|---|---|
+| **Match — you both said yes** | `would` · Yes + Yes | bright rising arpeggio |
+| **Close — one yes, one maybe** | `would` · Yes + Maybe | warm, unresolved |
+| **Both said maybe** | `would` · Maybe + Maybe | playful bounce |
+| *silence* | Not for me · Ask me again later · a mismatched `pick` · any `open` card | none |
+
+> **Silence is an answer.** A sound for everything is a sound for nothing.
+>
+> `pick` / `thisor` cards that match say **"Same answer"** — never "you both said
+> yes", because nobody did. `scale` cards match on the same number and come
+> close one apart.
+
+**`open` cards cannot be compared** — there is no stored answer, the reply is
+spoken aloud. So the second person is told *"Kevin drew this one too"* and the
+card passes without sound.
+
+**That is the payoff.** Individually the answers are just answers; the reason to
 play is the comparison. A card is only fully spent once both people have seen
 it.
+
+**Sound is synthesised on the device** (`audio.js`) — WebAudio oscillators only.
+No audio files, no network, nothing to download, works offline. iOS/Safari will
+not start an audio context outside a tap, and every sound fires from the DONE
+tap, so that constraint is satisfied by construction.
 
 ---
 
@@ -122,6 +154,13 @@ If a future card needs a limit list, the limit wins and the card is cut.
 3. **Person-scoped cards never leak.** `for:'him'` cannot be drawn by HER and
    vice versa — verified, 0 leaks across the full sweep.
 4. **Cards do not repeat for the same person** until the deck is spent.
+5. **PASS withdraws your answer.** Passing a card after selecting an option
+   deletes it — a card you passed is not a card you answered, and it will not
+   show up in someone else's comparison.
+6. **The reveal waits for DONE.** Nothing from your partner appears on screen
+   until you have committed.
+7. **Sound only on the three outcomes above.** A mismatch, a *Not for me*, or an
+   open card reveals in silence.
 
 ---
 
@@ -140,7 +179,7 @@ If a future card needs a limit list, the limit wins and the card is cut.
 No build step. No dependencies. No network calls. No analytics. No accounts.
 
 ```bash
-cd ember-deck
+cd /config/pwa/ember
 python3 -m http.server 8791
 # open http://127.0.0.1:8791/
 ```
@@ -191,8 +230,19 @@ Re-run `check.sh` and re-check the question-deck open percentage.
 
 ## Open questions
 
-- **Card count 170.** Comfortable, but still a first corpus.
+- **⛔ Only 55 of 170 cards can be compared.** The comparison — and therefore
+  every sound — only fires on `would` (15), `pick` (26), `thisor` (11) and
+  `scale` (3). The other **115 are `open`**, answered out loud, with nothing to
+  store and nothing to compare. So most draws end in silence by design. This is
+  the single biggest product gap: *the game's payoff is reachable on a third of
+  the deck.* The fix is not more cards, it is more `would`/`pick` — and it is a
+  corpus change, not a code change, so it can happen any time.
+- **No mute.** Sound is on and there is no toggle. `audio.js` already exposes
+  `setMuted()` / `isMuted()`; wiring a button is a ten-minute job if it is ever
+  wanted.
 - **No way to add your own cards yet** — every custom card means editing
   `deck.js`. A "write your own" screen is the obvious next feature.
 - **Two devices would need a sync layer.** Today it is one phone passed back
-  and forth, which is what the overlap mechanic assumes.
+  and forth, which is what the overlap mechanic assumes. A comparison that
+  needs both people on one phone is fine at a kitchen table and useless if one
+  of you is travelling.
