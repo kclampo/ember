@@ -211,7 +211,20 @@ mismatch on 2026-10-27 during this build.
 1. `bash check.sh` → must print `PASS`
 2. Bump `CACHE` in `sw.js` on **every** deploy
 3. Bump `version.js` **and** `version.json` together
-4. Push, wait ~30 s, grep the **live** URL — not the local file
+4. Push, wait ~60 s, fetch the **live** URL — not the local file
+
+**Live at:** `https://kclampo.github.io/ember/` · **repo:** `kclampo/ember`
+
+Hosting is **Pages, "Deploy from a branch" → `main` → `/ (root)`.** Every push
+to `main` goes live; there is no build step and nothing to configure.
+
+> ⚠️ **Why branch-deploy and not a Pages workflow:** a workflow's `GITHUB_TOKEN`
+> can *deploy* to an existing Pages site but **cannot create one** — GitHub
+> returns `Resource not accessible by integration`, and `configure-pages` with
+> `enablement: true` fails at that exact step. The local PAT has no `pages`
+> scope either (403 on `PUT /repos/.../pages`). Enabling Pages is therefore a
+> one-time human click, and `check.yml` runs the gate independently so a gate
+> failure is never confused with a deploy failure.
 
 ---
 

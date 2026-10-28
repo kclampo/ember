@@ -1,0 +1,49 @@
+name: Gate
+
+# Runs the same check.sh I run locally, on every push.
+#
+# WAS a Pages deploy workflow. Removed the deploy steps on 2026-10-28: a
+# workflow's GITHUB_TOKEN can *deploy* to an existing Pages site but cannot
+# *create* one ("Resource not accessible by integration"), and the local PAT
+# has no `pages` scope either (403). Pages is therefore enabled once by hand —
+# Settings → Pages → Deploy from a branch → main → / (root) — and every push to
+# main goes live from there.
+#
+# This job is deliberately independent of Pages so a gate failure is never
+# confused with a deploy failure.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ESM syntax + glued-punctuation + version consistency
+        run: bash check.sh
+
+      - name: Assert every manifest icon exists
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          m = json.load(open('manifest.json'))
+          missing = [i['src'].lstrip('./') for i in m['icons']
+                     if not os.path.exists(i['src'].lstrip('./'))]
+          for i in m['icons']:
+              print(f"  {i['sizes']:>9}  {i['purpose']:<9}  {i['src']}")
+          if missing:
+              print("MISSING:", missing); sys.exit(1)
+          print("all manifest icons present")
+          PY

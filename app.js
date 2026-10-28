@@ -446,5 +446,18 @@ $('againBtn').addEventListener('click', resetAll);
 
 syncSegs();
 
+/* ------------------------------------------------------------ service worker */
+/* ⚠️ sw.js shipped in v1.0.0 and v1.1.0 but was NEVER REGISTERED — nothing
+   called navigator.serviceWorker.register(). The app therefore had no offline
+   cache and, because installability requires a service worker with a fetch
+   handler, it could not be added to a home screen. The cache-bump discipline
+   in sw.js was policing a cache that was never created.
+   Registered after `load` so it never competes with first paint. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
 /* exposed for the headless verification pass — not used by the UI */
 export const __test = { verdictOf, state, drawFor, onDone, onPass, reveal, remain, candidatesFor };
