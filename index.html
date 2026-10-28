@@ -48,8 +48,23 @@
     <p class="hint">Pressing a heat level includes everything below it. Nothing above it can appear.</p>
 
     <div class="who">
-      <button id="himBtn" class="whoBtn him"><span class="wholbl">HIM</span><span class="whosub">draw for Kevin</span></button>
-      <button id="herBtn" class="whoBtn her"><span class="wholbl">HER</span><span class="whosub">draw for Denise</span></button>
+      <button id="himBtn" class="whoBtn him"><span class="wholbl">HIM</span><span class="whosub" id="himSub">draw for him</span></button>
+      <button id="herBtn" class="whoBtn her"><span class="wholbl">HER</span><span class="whosub" id="herSub">draw for her</span></button>
+    </div>
+
+    <div class="names">
+      <div class="nameRow">
+        <label class="lbl" for="himName">Him</label>
+        <input id="himName" class="nameIn" type="text" maxlength="24" placeholder="Him"
+               autocomplete="off" autocapitalize="none" spellcheck="false" />
+      </div>
+      <div class="nameRow">
+        <label class="lbl" for="herName">Her</label>
+        <input id="herName" class="nameIn" type="text" maxlength="24" placeholder="Her"
+               autocomplete="off" autocapitalize="none" spellcheck="false" />
+      </div>
+      <p class="hint">Whatever you type here is what the app calls you. It stays on this
+        phone and is never sent anywhere. Blank just uses Him / Her.</p>
     </div>
 
     <div class="meta">

@@ -7,13 +7,13 @@
  * FIVE THINGS THAT ARE NOT OBVIOUS:
  *
  * 1. `pitch` is the question line; `q` is the thing being asked about. A
- *    "would" card with no pitch is a riddle — Kevin could not tell how they
+ *    "would" card with no pitch is a riddle — the reader could not tell how they
  *    worked (2026-10-27). The pitch is rendered above the card text.
  *
  * 2. `seen` is tracked PER PERSON. A card answered by one partner stays live
  *    for the other.
  *
- * 3. ⭐ THE REVEAL IS GATED (Kevin, 2026-10-27 #65359 — "the reveal should only
+ * 3. ⭐ THE REVEAL IS GATED (2026-10-27 — "the reveal should only
  *    be after we both answer a card"). The partner's answer is NEVER shown at
  *    draw time. Seeing her answer before you commit yours does not reveal a
  *    comparison, it manufactures one — you answer into her answer. The reveal
@@ -46,14 +46,25 @@ import { match, close, bothMaybe, scaleMatch, scaleClose } from './audio.js';
 const $ = id => document.getElementById(id);
 const LS = {
   seen: 'ember.seen', deck: 'ember.deck', heat: 'ember.heat',
-  sub: 'ember.sub', ans: 'ember.answers',
+  sub: 'ember.sub', ans: 'ember.answers', names: 'ember.names',
 };
 
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
 const OTHER = p => (p === 'him' ? 'her' : 'him');
-const NAME = { him: 'Kevin', her: 'Denise' };
+/* ⛔ NO REAL NAMES IN THIS FILE. The repo is public and every byte of app.js is
+   fetchable from the live site, so a hardcoded pair of first names put two real
+   people's identities on an explicit card deck anyone can read.
+   (v1.2.0 shipped exactly that: a hardcoded pair of real first names.)
+   Names are now typed on the device and live only in localStorage. Nothing
+   identifying is ever committed. Defaults are roles, not people. */
+const DEFAULT_NAME = { him: 'Him', her: 'Her' };
+
+function nameOf(person) {
+  const n = (state.names && state.names[person] || '').trim();
+  return n || DEFAULT_NAME[person];
+}
 
 /* decks that carry a round-type switch */
 const SUBS = {
@@ -68,6 +79,7 @@ const state = {
   sub: load(LS.sub, { truthdare: 'mix', sypstrip: 'mix' }),
   seen: { him: new Set(storedSeen.him || []), her: new Set(storedSeen.her || []) },
   answers: load(LS.ans, {}),
+  names: load(LS.names, { him: '', her: '' }),
   card: null,
   person: null,
   revealed: false,
@@ -128,6 +140,30 @@ for (const d of DECKS) {
   selDeck.appendChild(o);
 }
 selDeck.value = state.deck;
+
+/* ---- names: typed on this device, stored in localStorage, never committed ----
+   Whatever you put here is what the reveal uses — "Master", "good girl",
+   anything. Blank falls back to the role (Him / Her). 24 chars max so a long
+   phrase cannot wreck the reveal layout. */
+const himName = $('himName');
+const herName = $('herName');
+himName.value = state.names.him || '';
+herName.value = state.names.her || '';
+
+function paintNames() {
+  $('himSub').textContent = 'draw for ' + nameOf('him');
+  $('herSub').textContent = 'draw for ' + nameOf('her');
+}
+
+function onName(person, input) {
+  state.names[person] = input.value.slice(0, 24);
+  save(LS.names, state.names);
+  paintNames();
+}
+
+himName.addEventListener('input', () => onName('him', himName));
+herName.addEventListener('input', () => onName('her', herName));
+paintNames();
 
 function buildSub() {
   const cfg = SUBS[state.deck];
@@ -340,7 +376,7 @@ function reveal(card, person) {
   if (theirs !== undefined) {
     const mine = state.answers[card.id] ? state.answers[card.id][person] : undefined;
     if (mine !== undefined) box.append(row('You', mine));
-    box.append(row(NAME[other], theirs));
+    box.append(row(nameOf(other), theirs));
 
     const v = verdictOf(card, mine, theirs);
     if (v) {
@@ -354,7 +390,7 @@ function reveal(card, person) {
   } else {
     const d = document.createElement('div');
     d.className = 'prow';
-    d.textContent = `${NAME[other]} drew this one too.`;
+    d.textContent = `${nameOf(other)} drew this one too.`;
     box.append(d);
   }
 

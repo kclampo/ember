@@ -11,7 +11,7 @@
  *
  * ⭐ `pitch` — EVERY `would` CARD CARRIES ONE. A bare sentence fragment with no
  * question attached is not a card, it is a riddle. The pitch is the question
- * line, the `q` is the thing being asked about. 2026-10-27: Kevin said he could
+ * line, the `q` is the thing being asked about. 2026-10-27: the reader said they could
  * not tell how these cards worked — the pitch is the fix.
  *
  * BALANCE RULE: in the question decks (admire, fantasy, truths) keep `open` at

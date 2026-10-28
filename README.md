@@ -2,7 +2,33 @@
 
 A deck for two. Five games, three heat tiers, on-device only.
 
-**Product name:** Ember · **Version:** 1.2.0 · **170 cards** · **repo:** `kclampo/ember`
+**Product name:** Ember · **Version:** 1.2.1 · **170 cards** · **repo:** `kclampo/ember`
+
+---
+
+## ⛔ Privacy — there are no names in this repository
+
+**This repo is public, and every file in it is fetchable from the live site.** So
+nothing identifying is committed — not in the code, not in the comments, not in this
+README.
+
+Names are **typed by the user on their own device** and stored in `localStorage`
+(`ember.names`). Never sent anywhere, never cached into the service worker, never
+committed. Blank falls back to the roles: **Him / Her**. Both fields accept any text
+up to 24 characters — a name, a title, a pet name, whatever the two of you actually
+call each other.
+
+> **⚠️ What v1.2.1 fixed:** v1.2.0 shipped `NAME = { him: …, her: … }` hardcoded in
+> `app.js`, with the same two first names in the button labels, the README, and the
+> code comments — two real people's identities attached to an explicit card deck,
+> publicly readable, for anyone who had the URL or searched GitHub. Every instance is
+> gone.
+
+> **⛔ What this does NOT fix:** the 170 cards are still publicly readable. Removing
+> the names removes the *identities*, not the *content*. If the corpus itself needs to
+> be private, the repo has to be private — and GitHub Pages from a private repo
+> requires a paid GitHub plan, so that is a different host, not a code change. Decide
+> it deliberately.
 
 ---
 
@@ -72,7 +98,7 @@ Rendered small and orange above the card text:
 > *( Yes · Maybe · Not for me · Ask me again later )*
 
 > ⚠️ **Why this is mandatory:** the first build shipped these cards as bare
-> sentence fragments with no question attached. Kevin could not tell how they
+> sentence fragments with no question attached. The reader could not tell how they
 > worked. *A card you have to have explained is not a card.* All 15 `would`
 > cards now carry a pitch, and the test suite asserts the pitch renders.
 
@@ -93,7 +119,7 @@ comparison — the entire point — would never fire.
 > ⛔ **The reveal is gated.** You never see your partner's answer until you have
 > pressed **DONE** on your own answer. Showing her answer at draw time does not
 > reveal a comparison, it manufactures one — you would be answering *into* her
-> answer. (Kevin, 2026-10-27: *"the reveal should only be after we both answer a
+> answer. (2026-10-27: *"the reveal should only be after we both answer a
 > card."*)
 
 So the flow is:
@@ -117,7 +143,7 @@ So the flow is:
 > close one apart.
 
 **`open` cards cannot be compared** — there is no stored answer, the reply is
-spoken aloud. So the second person is told *"Kevin drew this one too"* and the
+spoken aloud. So the second person is told *"*name* drew this one too"* and the
 card passes without sound.
 
 **That is the payoff.** Individually the answers are just answers; the reason to

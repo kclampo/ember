@@ -1,4 +1,4 @@
 {
-  "version": "1.2.0",
-  "notes": "The reveal is now gated: you never see your partner's answer until you have committed your own. Both answers are shown side by side, and the deck plays a sound on a match (both yes), a near miss (yes and maybe), and both-maybe. Cards your partner has already answered are drawn first so comparisons actually happen."
+  "version": "1.2.1",
+  "notes": "Privacy fix: the two real first names that were hardcoded in app.js, the button labels and the README are gone. Names are now two fields you fill in yourself on the setup screen — anything you like, up to 24 characters — stored only on your device and never committed. Blank uses Him / Her."
 }
