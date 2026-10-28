@@ -44,21 +44,21 @@ export const isVisible = sum => sum > HIDE_AT_OR_BELOW;
  * act has no card yet, and the veto is inert until it does.
  */
 export const LIMIT_ITEMS = [
-  { id: 'restraint', label: 'Being held down or restrained',        test: /held down|restrained|hold them still|not to move it|your wrists|their wrists|hands above|hold their wrists/i },
+  { id: 'restraint', label: 'Being held down or restrained',        test: /held down|restrained|hold them still|not to move it|do not move|don't move|your wrists|their wrists|hands above|hold their wrists/i },
   { id: 'blindfold', label: 'Being blindfolded',                    test: /blindfold/i },
   /* ⭐ 'made to come' belongs with denial — both are orgasm control, and a
      forced orgasm was previously unvetoeable because no word in it matched. */
   { id: 'denial',    label: 'Being denied, made to wait, or made to come', test: /denied|made to wait|make them wait|wait a full minute|told no|waiting for it|forced orgasm|made to come|whether or not you were ready|edge and stop|do not let them finish/i },
-  { id: 'teasing',   label: 'Being teased for a long time',         test: /teased|hours with nothing|take far longer|stop at the waistband|do not go further/i },
+  { id: 'teasing',   label: 'Being teased for a long time',         test: /teased|hours with nothing|take far longer|stop at the waistband|do not go further|fingernail|lightest touch/i },
   { id: 'watched',   label: 'Being watched',                        test: /being watched|watched the entire|watching your partner|watch as your partner|let them look|watch you do it|while they watch|let them watch/i },
   { id: 'orders',    label: 'Being told what to do',                test: /instruction|what you are told|what to wear|what to do for an evening|plain words/i },
-  { id: 'incharge',  label: 'Being the one in charge',              test: /in charge|take charge|decides everything|decide what comes off|how the next hour|left to decide everything/i },
+  { id: 'incharge',  label: 'Being the one in charge',              test: /in charge|take charge|decides everything|decide what comes off|how the next hour|roles were swapped|left to decide everything/i },
   { id: 'marking',   label: 'Being marked or bitten',               test: /until it marks|where only the two of you would know|bite down|bitten|suck on the soft/i },
-  { id: 'risky',     label: 'Somewhere you could be caught',        test: /caught|being heard|keep quiet|outdoors|walk in/i },
-  { id: 'dirtytalk', label: 'Dirty talk / being told in words',     test: /whisper|say out loud|out loud|says that you|say in the moment|exactly where|exactly what you are going to do/i },
+  { id: 'risky',     label: 'Somewhere you could be caught',        test: /caught|being heard|keep quiet|outdoors|walk in|place you have always wanted/i },
+  { id: 'dirtytalk', label: 'Dirty talk / being told in words',     test: /whisper|say out loud|out loud|talk dirty|says that you|say in the moment|exactly where|exactly what you are going to do/i },
   { id: 'heldrule',  label: 'Being held to one instruction',        test: /one instruction|stays on until/i },
   { id: 'waking',    label: 'Being woken up for it',                test: /woken up|wake them|awake enough|properly awake/i },
-  { id: 'performing',label: 'Being made to perform or show',        test: /take your time with yourself|undressing for someone|top half|show your partner|show off|plays with themselves|touch yourself/i },
+  { id: 'performing',label: 'Being made to perform or show',        test: /take your time with yourself|undressing for someone|top half|show your partner|show off|plays with themselves|touch yourself|pleasure yourself/i },
   /* ⭐ TOYS ARE TYPES, NOT ONE THING (2026-10-28: "expand toys to include
      different types of toys"). One `toys` row meant a hard no on clamps also
      killed every vibrator card — which is not what anyone means by "no clamps".
@@ -107,7 +107,7 @@ export const LIMIT_ITEMS = [
      all for being seen, for a third person, or for pain as a category.
      ⚠️ Overlap is deliberate — a veto on `pain` removes impact AND marking cards.
      Vetoes UNION, so over-matching fails SAFE. */
-  { id: 'voyeur',    label: 'Watching — them, or watching others',  test: /watch as your partner|watching your partner|watch as you|watch you do it|let them watch|while they watch|watch me|watch them/i },
+  { id: 'voyeur',    label: 'Watching — them, or watching others',  test: /watch as your partner|watching your partner|watch as you|watch you do it|watch porn|let them watch|while they watch|watch me|watch them/i },
   { id: 'exhib',     label: 'Being seen — shown off, watched by others, filmed', test: /someone watch|watch us|in front of someone|someone else present|others present|posting a film|online|show your partner|show off|recorded|filmed/i },
   /* ⛔ NO CARDS. The corpus excludes a third person as an involved act, so this
      rating records a position and vetoes nothing — there is nothing to veto.
@@ -118,6 +118,10 @@ export const LIMIT_ITEMS = [
      mislabels what it removes teaches the wrong lesson about your own limits. */
   { id: 'cuck',      label: 'Your partner with someone else',       test: /your partner with someone|watch them with someone|someone else in bed with|another person involved/i },
   { id: 'pain',      label: 'Pain — impact, biting, clamps',        test: /spank|paddle|whip|flog|\bbelt\b|punish|bite|clamp|hurt|\bimpact\b/i },
+  /* ⭐ SENSATION (v1.3.9). Ice had NO act covering it — a card about ice on the
+     nipples could be dealt to someone who would hate it. Ice, wax and temperature
+     are one family: it is the SHOCK, not the object. */
+  { id: 'sensation', label: 'Ice, wax, or temperature play',        test: /ice cube|\bice\b|ice-cold|wax|cold water|hot wax/i },
   /* ⭐ DIRECTIONAL ACTS (2026-10-28: "they need to be asked both ways giving oral
      and receiving oral. same with anal"). Giving and receiving are DIFFERENT
      limits — someone who will not give may happily receive — so each gets its own

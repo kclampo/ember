@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.8 · **343 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.9 · **360 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -49,8 +49,8 @@ spent.
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
 | **The Menu** | Questions | 74 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 109 | rounds 1–5 / 6–11 / 12–17 / 18+ |
-| **Kindling** | Games | 106 | Spark → Flame → Blaze → Inferno |
+| **Truth or Dare** | Games | 127 | rounds 1–5 / 6–11 / 12–17 / 18+ |
+| **Kindling** | Games | 111 | Spark → Flame → Blaze → Inferno |
 
 ### Tier labels are per-deck
 
@@ -261,6 +261,7 @@ seen, for a third person, or for **pain as a category**. Four families were adde
 | `exhib` | being seen — shown off, watched by someone else, filmed, posted |
 | `cuck` | your partner with someone else — **no cards exist and none will** |
 | `pain` | impact, biting, clamps — an umbrella over `impact` + `marking` |
+| `sensation` | ice, wax, temperature play |
 | `toy_vibe` | vibrator or wand |
 | `toy_insert` | an insertable toy (vaginal) |
 | `toy_squeeze` | squeeze — clamps, bands, grip |
@@ -451,14 +452,18 @@ Then re-run `check.sh`.
 
 ## Open
 
-- **30 limit acts.** Every one now has content somewhere — the audit reports **no act with
+- **31 limit acts.** Every one now has content somewhere — the audit reports **no act with
   nothing anywhere**. `cuck` is the only one whose gate can remove nothing, because a third
   person as an **involved** act stays excluded from the games: its two Menu cards record a
   position and gate a theme that has no cards to remove. That is deliberate, not an
   oversight. Auditable: `L.verify(CARDS)` prints the match count per act.
 - **History of holes this closed:** six acts vetoed nothing in 1.3.5 (including `impact`
   and `photo`); `undress` did not exist at all until 1.3.6, so the strip mechanic had no
-  veto; `degrade` and `cuck` had no card of any kind until 1.3.8.
+  veto; `degrade` and `cuck` had no card of any kind until 1.3.8; **ice had no act at all
+  until 1.3.9** — `sensation` was added, and six acts were widened to catch the language
+  the new cards actually use (*talk dirty*, *fingernail*, *pleasure yourself*, *do not
+  move*, *watch porn*, *roles swapped*). Six of nine new concepts had no hard no behind
+  them before that pass.
 - **Limit matching is regex over card text**, not an explicit tag. A reworded card can
   silently stop matching. Explicit per-card tags would be sturdier; the regex is the
   reason a card can be added that no veto covers, so run `verify()` when you add one.

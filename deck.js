@@ -352,6 +352,20 @@ const TRUTHS = [
   { t:4, q:'What is a toy you want me to use on you that you have never asked for?' },
   { t:4, q:'Would you want to be tied and used with a toy without being asked first?' },
   { t:4, q:'Would you want to beg for it out loud while it is happening?' },
+
+  /* ═══════════ v1.3.9 ═══════════ */
+  { t:2, q:'What is something you have always wanted your partner to do for you?' },
+  { t:2, q:'What is something you have always wanted to do to your partner?' },
+  { t:2, q:'What do you find more pleasurable — receiving an orgasm, or giving one?' },
+  { t:2, q:'If you could not get caught, where would you want to have sex with your partner?' },
+  { t:2, q:'Where is a place you have always wanted to have passionate sex?' },
+  { t:3, q:'Could you handle a night where the roles were swapped, and you were in the other one?' },
+  { t:3, q:'Would you watch porn with your partner? If so, what kind?' },
+  { t:3, q:'Who would be on your celebrity hall pass list?' },
+  { t:3, q:'Could you pick your partner\'s cock or pussy out in a lineup?' },
+  { t:4, q:'What is a sex act you have always wanted to try but are afraid your partner would judge?' },
+  { t:4, q:'What is a secret about your sex life your partner does not know?' },
+  { t:4, q:'What is something you have wanted to say to your partner but are afraid it would hurt them?' },
 ];
 
 /* Every dare carries `layer` when clothing comes off, so the engine can keep
@@ -442,6 +456,11 @@ const DARES = [
   { t:2, q:'Wake them with your mouth on their neck, and do not stop when they stir.' },
   { t:3, q:'Call them something degrading, once, and watch what it does to them.' },
   { t:2, q:'Take one item off them somewhere you could be caught.' },
+
+  /* ═══════════ v1.3.9 ═══════════ */
+  { t:2, q:'Talk dirty to them for twenty seconds. Do not stop until it is up.', secs:20 },
+  { t:3, q:'Put your hand on them and do not move it. Stare into their eyes for a minute.', secs:60 },
+  { t:3, q:'Pleasure yourself in front of them for two minutes, and do not look away.', secs:120 },
 ];
 
 /* ═══════════════════════════════════════════════════ 4 · KINDLING (86)
@@ -582,6 +601,10 @@ const KINDLING = [
   { t:2, q:'Wake them with your hands and keep going until they are awake enough to answer.' },
   { t:2, q:'Kiss them somewhere someone could walk in. Do not stop when you hear something.' },
   { t:3, q:'Tell them what they are, in one word, and make them repeat it back.' },
+
+  /* ═══════════ v1.3.9 ═══════════ */
+  { t:2, q:'Rub an ice cube over their nipples, and do not warm it up first.' },
+  { t:2, q:'Run just your fingernail over them, as light as you can, for thirty seconds.', secs:30 },
 ];
 
 /* ═══════════════════════════════════════════════════════════ ASSEMBLY ═══ */
