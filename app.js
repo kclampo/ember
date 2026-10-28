@@ -16,7 +16,7 @@
  * bail as CommonJS before it reaches the real error.
  */
 
-import { CARDS, DECKS, TIERS, TABS, WOULD_OPTS, stageForRound } from './deck.js';
+import { CARDS, DECKS, TIERS, TABS, WOULD_OPTS, NOISH, LEGACY_IDS, stageForRound } from './deck.js';
 import { APP_VERSION } from './version.js';
 import { match, close, bothMaybe, scaleMatch, scaleClose } from './audio.js';
 import * as L from './limits.js';
@@ -27,6 +27,7 @@ const LS = {
   qseen: 'ember.qseen', qdeck: 'ember.qdeck', qtier: 'ember.qtier',
   menu: 'ember.menu',
   session: 'ember.session', limits: 'ember.limits', tab: 'ember.tab',
+  limitsrt: 'ember.limitsrt',
 };
 
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
@@ -53,8 +54,30 @@ const state = {
   limitsStage: 'idle',
   limitsWho: 'him',
   limitIdx: 0,
+  limitsDraft: { him: {}, her: {} },
 };
 state.qseen = { him: new Set(state.qseen.him || []), her: new Set(state.qseen.her || []) };
+
+/* ⭐ A LIMITS ROUND INTERRUPTED BY A REFRESH MUST SURVIVE IT (2026-10-28:
+   "make sure the limits and menu do not reset when the app is refreshed or a
+   new version is pushed"). The finished answers were always persisted; the
+   ROUND IN PROGRESS was memory-only, so a reload lost every rating given so
+   far and silently restarted at question one. Stage, speaker, position and the
+   draft now persist on every answer. */
+const LRT = load(LS.limitsrt, null);
+if (LRT && (LRT.stage === 'rate' || LRT.stage === 'handoff')) {
+  state.limitsStage = LRT.stage;
+  state.limitsWho = LRT.who || 'him';
+  state.limitIdx = LRT.idx || 0;
+  state.limitsDraft = LRT.draft || { him: {}, her: {} };
+}
+function saveLimitsRt() {
+  save(LS.limitsrt, {
+    stage: state.limitsStage, who: state.limitsWho,
+    idx: state.limitIdx, draft: state.limitsDraft,
+  });
+}
+function clearLimitsRt() { try { localStorage.removeItem(LS.limitsrt); } catch {} }
 
 function nameOf(p) {
   const n = (state.names[p] || '').trim();
@@ -114,15 +137,18 @@ function gameCards() {
 /* ⭐ THE MENU GATES THE GAMES (2026-10-28: "it is more about us and
    should be locked in questions that affect the other games").
    A Menu card carries a `gate` — a limit-act id. If EITHER of you answers
-   "Not for me" on it, that whole theme stops being dealt in Truth or Dare and
-   Kindling. It is a soft veto: persisted, not a session setting, and it moves
-   with the answers rather than expiring in 12 hours. */
+   "Hard no" on it, that whole theme stops being dealt in Truth or Dare and
+   Kindling. It is persisted and permanent, not a session setting.
+   ⚠️ ONLY "HARD NO" GATES. "Not for me" is the soft refusal and must change
+   nothing in the games — otherwise a mild preference quietly deletes a whole
+   theme and nobody is told. (2026-10-28: "The menu card should remove if the
+   answer is a hard no, not a not for me, which is soft.") */
 function menuGates() {
   const st = menuStore();
   const gates = new Set();
   for (const c of CARDS) {
     if (!c.gate) continue;
-    if (st.ratings.him[c.id] === 'Not for me' || st.ratings.her[c.id] === 'Not for me') gates.add(c.gate);
+    if (st.ratings.him[c.id] === 'Hard no' || st.ratings.her[c.id] === 'Hard no') gates.add(c.gate);
   }
   return gates;
 }
@@ -142,6 +168,38 @@ function menuStore() {
   return state.menu;
 }
 function saveMenu() { save(LS.menu, menuStore()); }
+
+/* ⭐ NOTHING RATED ON AN OLDER BUILD MAY VANISH (2026-10-28: "make sure the
+   limits and menu do not reset when the app is refreshed or a new version is
+   pushed"). Ids became content-derived in 1.3.3, so ids written by 1.3.x are
+   translated here. Anything that still cannot be resolved is KEPT, never
+   deleted — an unknown key is inert (menuGates only ever walks CARDS) and
+   silent deletion is exactly how data disappears. */
+const KNOWN_IDS = new Set(CARDS.map(c => c.id));
+const remapId = id => KNOWN_IDS.has(id) ? id : (LEGACY_IDS[id] || id);
+
+function migrateStoredIds() {
+  const st = menuStore();
+  for (const who of ['him', 'her']) {
+    const out = {};
+    for (const [k, v] of Object.entries(st.ratings[who] || {})) out[remapId(k)] = v;
+    st.ratings[who] = out;
+    st.seen[who] = [...new Set((st.seen[who] || []).map(remapId))];
+    if (st.round && st.round.ratings) {
+      const rr = {};
+      for (const [k, v] of Object.entries(st.round.ratings[who] || {})) rr[remapId(k)] = v;
+      st.round.ratings[who] = rr;
+    }
+  }
+  if (st.round) st.round.ids = st.round.ids.map(remapId);
+
+  const q = { him: new Set(), her: new Set() };
+  for (const who of ['him', 'her']) for (const id of state.qseen[who]) q[who].add(remapId(id));
+  state.qseen = q;
+
+  saveMenu();
+  save(LS.qseen, { him: [...q.him], her: [...q.her] });
+}
 
 /* ══════════════════════════════════════════════════ pool / draw */
 const deckById = id => DECKS.find(d => d.id === id);
@@ -179,14 +237,29 @@ function availableFor(deckId, tier, person, { persistent = false, kind = null, e
 /* ══════════════════════════════════════════════════ verdicts + sound */
 const YES = 'Yes', MAYBE = 'Maybe';
 
+/* ⭐ COMPATIBILITY CARDS: the verdict is read off the PAIR of positions, not
+   from equality. "I lead" + "they follow" is a match; "I lead" + "I lead" is a
+   clash. The card supplies `pair` (which rule) and `map` (option → position). */
+function pairVerdict(card, A, B) {
+  const m = card.map || {};
+  const a = m[A], b = m[B];
+  if (!a || !b) return null;
+  if (a === 'flex' || b === 'flex') return 'complement';   // one of you has no preference
+  if ((a === 'lead' && b === 'follow') || (a === 'follow' && b === 'lead')) return 'complement';
+  if (a === 'trade' && b === 'trade') return 'complement';
+  if (a === b) return a === 'lead' ? 'bothLead' : 'neitherLead';
+  return 'talk';
+}
+
 function verdictOf(card, mine, theirs) {
   if (mine === undefined || theirs === undefined) return null;
   const A = String(mine), B = String(theirs);
+  if (card.pair && card.map) return pairVerdict(card, A, B);
   if (card.answer === 'would') {
     if (A === YES && B === YES) return 'match';
     if ((A === YES && B === MAYBE) || (A === MAYBE && B === YES)) return 'close';
     if (A === MAYBE && B === MAYBE) return 'bothMaybe';
-    if ((A === YES && B === 'Not for me') || (A === 'Not for me' && B === YES)) return 'mismatch';
+    if ((A === YES && NOISH.has(B)) || (NOISH.has(A) && B === YES)) return 'mismatch';
     return null;
   }
   if (card.answer === 'scale') {
@@ -199,13 +272,23 @@ function verdictOf(card, mine, theirs) {
   return null;
 }
 
-const SOUND = { match, close, bothMaybe, scaleMatch, scaleClose };
+const SOUND = { match, close, bothMaybe, scaleMatch, scaleClose, complement: match };
 
 /* ⚠️ A verdict must not claim something that did not happen. A `pick` card both
    answered "Morning" is a match — nobody said yes. */
-function verdictLabel(v, card) {
+function verdictLabel(v, card, mine, theirs) {
   if (v === 'match') return card.answer === 'would' ? 'Match — you both said yes' : 'Same answer';
-  if (v === 'mismatch') return 'Mismatch — one yes, one not for me';
+  if (v === 'mismatch') {
+    const refusal = [String(mine), String(theirs)].find(x => NOISH.has(x));
+    return refusal === 'Hard no'
+      ? 'Mismatch — one yes, one hard no'
+      : 'Mismatch — one yes, one not for me';
+  }
+  /* ⭐ complementarity, not agreement — see pairVerdict() */
+  if (v === 'complement')  return 'Match — the lead and the follow fit each other';
+  if (v === 'bothLead')    return 'Clash — you both want to lead';
+  if (v === 'neitherLead') return 'Clash — neither of you wants to lead';
+  if (v === 'talk')        return 'Talk — you want different shapes';
   return { close:'Close — one yes, one maybe', bothMaybe:'Both said maybe',
            scaleMatch:'Same number', scaleClose:'One apart' }[v] || '';
 }
@@ -715,7 +798,7 @@ function paintResults() {
     if (v) {
       const f = document.createElement('div');
       f.className = 'verdict ' + v;
-      f.textContent = verdictLabel(v, card);
+      f.textContent = verdictLabel(v, card, mine, theirs);
       row.append(f);
       const play = SOUND[v];
       if (play) play();
@@ -740,7 +823,12 @@ function finishMenuRound() {
 /* ══════════════════════════════════════════════════ LIMITS */
 function openLimits() {
   recomputeBlocked();
-  state.limitsStage = 'intro';
+  /* an in-flight round resumes; a finished one shows what you said rather than
+     inviting you to overwrite it */
+  const answered = k => Object.keys(state.limits[k] || {}).length > 0;
+  if (state.limitsStage !== 'rate' && state.limitsStage !== 'handoff') {
+    state.limitsStage = (answered('him') && answered('her')) ? 'table' : 'intro';
+  }
   paintLimits();
 }
 
@@ -761,6 +849,7 @@ function paintLimits() {
     const b = btn('Start — ' + nameOf('him') + ' first', 'done wide', () => {
       state.limitsStage = 'rate'; state.limitsWho = 'him'; state.limitIdx = 0;
       state.limitsDraft = { him: {}, her: {} };
+      saveLimitsRt();
       paintLimits();
     });
     host.append(b);
@@ -773,12 +862,14 @@ function paintLimits() {
       if (state.limitsWho === 'him') {
         state.limitsDraft.him = { ...state.limitsDraft.him };
         state.limitsStage = 'handoff';
+        saveLimitsRt();
         paintLimits(); return;
       }
       state.limits = { him: { ...state.limitsDraft.him }, her: { ...state.limitsDraft.her } };
       save(LS.limits, state.limits);
       recomputeBlocked();
       state.limitsStage = 'table';
+      clearLimitsRt();
       paintLimits(); return;
     }
     const item = items[state.limitIdx];
@@ -799,6 +890,7 @@ function paintLimits() {
       b.addEventListener('click', () => {
         state.limitsDraft[state.limitsWho][item.id] = s.id;
         state.limitIdx += 1;
+        saveLimitsRt();
         paintLimits();
       });
       wrap.append(b);
@@ -822,6 +914,7 @@ function paintLimits() {
     host.append(t);
     host.append(btn('Continue', 'done wide', () => {
       state.limitsStage = 'rate'; state.limitsWho = 'her'; state.limitIdx = 0;
+      saveLimitsRt();
       paintLimits();
     }));
     return;
@@ -868,6 +961,8 @@ function paintLimits() {
   host.append(btn('Reset list', 'link wide', () => {
     state.limits = L.blankAnswers();
     save(LS.limits, state.limits);
+    state.limitsDraft = { him: {}, her: {} };
+    clearLimitsRt();
     recomputeBlocked();
     state.limitsStage = 'intro';
     paintLimits();
@@ -937,6 +1032,7 @@ $('againBtn').addEventListener('click', () => {
 });
 
 /* ══════════════════════════════════════════════════ boot */
+migrateStoredIds();          // translate pre-1.3.3 ids BEFORE anything reads BLOCKED
 recomputeBlocked();
 paintTabs();
 buildDeckSel();

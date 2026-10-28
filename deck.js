@@ -65,7 +65,14 @@ export const TIERS = {
   kindling:   { 1: 'Spark',    2: 'Flame',    3: 'Blaze'  },
 };
 
-export const WOULD_OPTS = ['Yes', 'Maybe', 'Not for me', 'Ask me again later'];
+/* ⭐ 'Hard no' GATES, 'Not for me' DOES NOT (2026-10-28).
+   "The menu card should remove if the answer is a hard no, not a not for me,
+   which is soft." So there are two different refusals and they do different
+   jobs: 'Not for me' is a preference that belongs to tonight, 'Hard no' is a
+   limit that belongs to the deck. Only the hard one removes cards from the
+   games. */
+export const WOULD_OPTS = ['Yes', 'Maybe', 'Not for me', 'Ask me again later', 'Hard no'];
+export const NOISH = new Set(['Not for me', 'Hard no']);
 
 const P = 'Would you want this?';
 
@@ -180,8 +187,16 @@ const MENU = [
   { t:2, a:'thisor',q:'Which do you want tonight?', opts:['To be surprised','To be told in advance and made to wait'] },
   { t:2, a:'thisor',q:'How do you want to be wanted?', opts:['Said out loud, in words','Shown without a word'] },
   { t:2, a:'pick',  q:'What pace actually works for you?', opts:['Slow and deliberate','Fast and urgent','Teasing, on and off','Whatever happens'] },
+  /* ⭐ THIS CARD IS COMPATIBILITY, NOT AGREEMENT (2026-10-28: "A match is if I
+     lead and she follows or vice versa, not if we both want to lead.").
+     Two people both saying "I lead" is the FAILURE state, not the win. So the
+     verdict is read off the PAIR of positions, never off equality. `map` names
+     the position each option stands for; `pair` names the rule that reads it. */
   { t:2, a:'pick',  q:'When it comes to who leads, what do you actually want?',
-    opts:['They lead and I follow','I lead and they follow','We trade it mid-scene','Whoever starts it, leads'] },
+    opts:['They lead and I follow','I lead and they follow','We trade it mid-scene','Whoever starts it, leads'],
+    pair:'leadfollow',
+    map:{ 'They lead and I follow':'follow', 'I lead and they follow':'lead',
+          'We trade it mid-scene':'trade',  'Whoever starts it, leads':'flex' } },
   { t:2, a:'scale', q:'How honest have you been with them about what you want?',
     lo:'Not at all', hi:'Completely' },
 
@@ -385,9 +400,32 @@ const KINDLING = [
 ];
 
 /* ═══════════════════════════════════════════════════════════ ASSEMBLY ═══ */
-let n = 0;
+/* ⭐ CONTENT-DERIVED IDS (v1.3.3, 2026-10-28).
+   Ids used to come from ONE GLOBAL COUNTER (`let n = 0; ++n`), which made them
+   POSITIONAL: inserting a single card renumbered every card after it, so a
+   stored Menu rating silently re-pointed at a different card and a "Not for me"
+   you never gave could lock out a theme you never answered. An id must not move
+   when the corpus is edited. It now hashes the deck and the question text, so
+   only editing THAT card's own wording changes its id — and that loses one
+   rating instead of corrupting all of them.
+   ⛔ NEVER reintroduce a counter here. `check.sh` fails the build if ids are
+   sequential again. */
+function h32(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h.toString(36);
+}
+const _ids = new Set();
+function stableId(deck, q) {
+  const base = `${deck}-${h32(deck + '|' + q)}`;
+  let id = base, k = 0;
+  while (_ids.has(id)) id = base + String.fromCharCode(98 + k++);
+  _ids.add(id);
+  return id;
+}
+
 const mk = (deck, c, extra = {}) => ({
-  id: `${deck}-${String(++n).padStart(3, '0')}`,
+  id: stableId(deck, c.q),
   deck,
   tier: c.t,
   answer: c.a || 'open',
@@ -400,6 +438,8 @@ const mk = (deck, c, extra = {}) => ({
   gate: c.gate || null,
   lo: c.lo || null,
   hi: c.hi || null,
+  pair: c.pair || null,
+  map: c.map || null,
   ...extra,
 });
 
@@ -412,6 +452,16 @@ export const CARDS = [
 ];
 
 export const COUNTS = CARDS.reduce((a, c) => (a[c.deck] = (a[c.deck] || 0) + 1, a), {});
+
+/* ⚠️ ONE-TIME MIGRATION (v1.3.3). Translates ids written under the old
+   positional scheme into their content-derived ids, so anything rated on the
+   1.3.x line survives this upgrade instead of silently vanishing. Computed from
+   the shipped corpus order rather than stored as a blob.
+   ⛔ It is only correct for the corpus that shipped in 1.3.2. Delete it once a
+   full Menu round has been played on 1.3.3. */
+export const LEGACY_IDS = Object.fromEntries(
+  CARDS.map((c, i) => [`${c.deck}-${String(i + 1).padStart(3, '0')}`, c.id])
+);
 
 /** Round → tier for deck 3. Rounds 1–5 warming, 6–11 heated, 12+ edge. */
 export function stageForRound(round) {

@@ -47,6 +47,26 @@ for f in index.html styles.css app.js deck.js limits.js audio.js version.js sw.j
   [ -f "$f" ] && echo "  OK   $f" || { echo "  MISSING $f"; fail=1; }
 done
 
+echo "== card ids: content-derived, unique, never positional =="
+# ⛔ Ids must NOT come from a counter. Until v1.3.3 they did (`let n = 0; ++n`),
+# which made them POSITIONAL: inserting one card renumbered every card after it,
+# so a stored Menu rating silently re-pointed at a DIFFERENT card — and a gate
+# could fire on a theme nobody ever answered. This gate fails the build if ids
+# drift back to positional or collide.
+node --input-type=module -e "
+import { CARDS } from './deck.js';
+const h32 = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36); };
+const ids = CARDS.map(c => c.id);
+const dupes = [...new Set(ids.filter((v, i) => ids.indexOf(v) !== i))];
+const positional = CARDS.filter(c => /-[0-9]{3}\$/.test(c.id));
+const notHash = CARDS.filter(c => !c.id.startsWith(c.deck + '-' + h32(c.deck + '|' + c.q)));
+console.log('  cards =', CARDS.length, '· unique =', new Set(ids).size);
+if (dupes.length)      { console.log('  FAIL duplicate ids:', dupes.slice(0,5).join(' ')); process.exit(1); }
+if (positional.length) { console.log('  FAIL positional ids:', positional.slice(0,3).map(c=>c.id).join(' ')); process.exit(1); }
+if (notHash.length)    { console.log('  FAIL not content-derived:', notHash.slice(0,3).map(c=>c.id).join(' ')); process.exit(1); }
+console.log('  OK   content-derived and unique');
+" || fail=1
+
 echo "== version consistency =="
 vj=$(grep -oE '"version"[[:space:]]*:[[:space:]]*"[^"]+"' version.json | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 vv=$(grep -oE "'[0-9]+\.[0-9]+\.[0-9]+'" version.js | head -1 | tr -d "'")

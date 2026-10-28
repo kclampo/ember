@@ -1,4 +1,4 @@
 {
-  "version": "1.3.2",
-  "notes": "Privacy regression fix. v1.3.0 and v1.3.1 reintroduced the two real first names into the public app.js inside code comments, after v1.2.1 had removed them. Both are gone again, and check.sh now fails the build if a private word appears in any tracked file, so it cannot happen a third time."
+  "version": "1.3.3",
+  "notes": "Three fixes. (1) Only 'Hard no' removes a theme from the games — 'Not for me' is the soft refusal and now changes nothing, and 'Hard no' is a new fifth answer. (2) The 'who leads' card is scored as a compatibility PAIR, so 'I lead' + 'they follow' is a match and 'we both want to lead' is the failure state. (3) Card ids are content-derived instead of positional, so a version push can no longer renumber stored answers, and an interrupted Limits round survives a refresh."
 }

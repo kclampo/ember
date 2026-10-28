@@ -208,6 +208,15 @@ body {
 .resRow .verdict.close { color: var(--her); }
 .resRow .verdict.bothMaybe { color: var(--dim); }
 .resRow .verdict.mismatch { color: #d0a05a; }
+/* v1.3.3 — compatibility cards read a PAIR, not equality. A complement is a
+   match; "we both want to lead" is the failure state and must not look like one. */
+.resRow.complement { border-color: rgba(240,132,92,.55); }
+.resRow.bothLead,
+.resRow.neitherLead { border-color: rgba(208,160,90,.5); }
+.resRow .verdict.complement { color: var(--hot2); }
+.resRow .verdict.bothLead,
+.resRow .verdict.neitherLead,
+.resRow .verdict.talk { color: #d0a05a; }
 .partner .verdict.mismatch { color: #d0a05a; }
 
 /* ---------------------------------------------------------- limits */

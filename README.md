@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.2 · **253 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.3 · **253 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -82,16 +82,49 @@ Warming, 6–11 Heated, 12+ Edge, shown as a status line.
 
 The Menu lives under **Questions** because it is about the two of you, not a game you
 play — and its answers **lock in**. Each Menu card carries a `gate` (a limit-act id).
-If **either** of you answers **"Not for me"** on it, that whole theme stops being dealt
-in Truth or Dare and Kindling.
+If **either** of you answers **"Hard no"** on it, that whole theme stops being dealt in
+Truth or Dare and Kindling.
 
-It is a **soft veto**: persisted, permanent, and driven by your answers rather than
-expiring with the 12-hour session. The hard veto in Limits is absolute and cannot be
-outvoted; the Menu gate is you telling the app what you don't want, once, and having it
-remember.
+> **⛔ ONLY "HARD NO" GATES.** The answer list is
+> `Yes · Maybe · Not for me · Ask me again later · Hard no`, and those two refusals are
+> not the same thing. **"Not for me" is soft** — it is a preference that belongs to
+> tonight and it changes *nothing* in the games. **"Hard no" is a limit** — it belongs
+> to the deck and it removes the theme. A soft answer that silently deleted a theme
+> would be the app overriding you with a mood.
+
+It is a **persisted veto**: permanent, and driven by your answers rather than expiring
+with the 12-hour session. The hard veto in Limits is also absolute; the Menu gate is
+you telling the app what you don't want, once, and having it remember.
 
 Both are enforced by the same code path, and **neither ever touches the Connection
 deck** — a hard no on "being watched" must not delete a conversation question.
+
+---
+
+## ⭐ Compatibility cards — a match is not always agreement
+
+Most cards resolve by equality: two identical answers. **One does not.**
+
+*"When it comes to who leads, what do you actually want?"* — if he says **"I lead and
+they follow"** and she says **"They lead and I follow"**, that is the outcome you want,
+and scoring it as a mismatch would be exactly backwards. Two people both answering
+**"I lead"** is the *failure* state, not the win.
+
+So the card declares a `pair` rule and a `map` from each option to a **position**
+(`lead` / `follow` / `trade` / `flex`), and the verdict is read off the **pair**:
+
+| Him | Her | Verdict |
+|---|---|---|
+| lead | follow | **Match — the lead and the follow fit each other** |
+| trade | trade | **Match** |
+| flex | anything | **Match** — no preference |
+| lead | lead | **Clash — you both want to lead** |
+| follow | follow | **Clash — neither of you wants to lead** |
+| trade | lead | **Talk — you want different shapes** |
+
+Only `complement` carries the match sound. A clash is silent, because it is information,
+not a win. Any card can opt in by declaring `pair` + `map`; everything else keeps
+ordinary equality scoring.
 
 ---
 
@@ -133,6 +166,33 @@ never filtered.
 
 ---
 
+## ⭐ Nothing you answered is lost on a refresh or a new version
+
+Three separate mechanisms, because there were three separate ways to lose data.
+
+**1. Ids are content-derived, not positional.** Until v1.3.3 card ids came from one
+global counter (`let n = 0; ++n`), which made them **positional**: inserting a single
+card renumbered every card after it, so a stored rating silently re-pointed at a
+*different* question — and a gate could fire on a theme nobody ever answered. That is
+worse than a reset, because nothing looks wrong. Ids now hash the deck and the card's
+own wording, so editing the corpus never moves an existing id. `check.sh` fails the
+build if they ever go sequential again.
+
+**2. Ratings written by 1.3.x are migrated, not dropped.** `LEGACY_IDS` in `deck.js`
+translates old positional ids to their content-derived equivalents on first boot. Ids
+that still cannot be resolved are **kept**, never deleted — an unknown key is inert
+(the gate logic only ever walks `CARDS`), and silent deletion is how data disappears.
+
+**3. An interrupted Limits round survives.** Finished answers were always saved; the
+round *in progress* was memory-only, so a reload lost every rating given so far and
+restarted at question one without saying so. Stage, speaker, position and the draft now
+persist on every answer. Tapping **LIMITS** resumes the round where it stopped; once
+both of you have finished it shows what you said instead of inviting you to overwrite it.
+
+A Menu round mid-flight also resumes into the rating view on reload.
+
+---
+
 ## The sounds — three, and only three
 
 | Outcome | Sound |
@@ -140,8 +200,9 @@ never filtered.
 | Yes + Yes | **match** — bright rising arpeggio |
 | Yes + Maybe | **close** — warm, unresolved |
 | Maybe + Maybe | **both maybe** — playful bounce |
-| Yes + Not for me | **silence**, with a plain *"Mismatch"* label |
-| anything else | silence |
+| lead + follow (*compatibility*) | **match** |
+| Yes + Not for me, or Yes + Hard no | **silence**, with a plain *"Mismatch"* label |
+| anything else, including a clash | silence |
 
 **A sound for everything is a sound for nothing.** A mismatch is information, not a
 win. `pick` / `thisor` matches say **"Same answer"**, never "you both said yes".
@@ -176,7 +237,9 @@ bash check.sh
 ```
 
 Validates every `.js` **as ESM**, scans for glued punctuation, checks required files,
-and asserts `version.js` matches `version.json`.
+asserts card ids are content-derived and unique, checks `version.js` matches
+`version.json`, and greps every tracked file for the private words in `.privatewords`
+(git-ignored, so the guard never commits what it guards against).
 
 > `node --check app.js` returns **exit 0** on broken module code — the `import` makes
 > Node bail as CommonJS before reaching the real error. `.mjs` or nothing.
@@ -203,11 +266,19 @@ independently so a gate failure never looks like a deploy failure.
 { t:2, a:'pick',  q:'Where first?', opts:['Neck','Mouth','Chest'] }
 { t:3, q:'Hold their wrists.', as:'dom' }
 { t:2, q:'Remove one item.', layer:{ who:'partner', n:1 } }
+/* compatibility card — verdict read off the PAIR, not equality */
+{ t:2, a:'pick', q:'Who leads?', opts:['They lead','I lead'], pair:'leadfollow',
+  map:{ 'They lead':'follow', 'I lead':'lead' } }
 ```
 
 `as` is `'any'` unless the card's direction is the content. `layer.who` is one of
 `self` · `partner` · `both` · `self-they-choose` · `partner-they-choose` ·
-`partner-you-choose`, written from the holder's point of view.
+`partner-you-choose`, written from the holder's point of view. `pair` + `map` are
+optional and only for cards where agreement is not the win condition.
+
+**⛔ Never reword a card you have already answered unless you mean to retire that
+answer** — a card's id is a hash of its own text, so changing the wording starts it
+fresh. Every other card keeps its id and its stored answer.
 
 Then re-run `check.sh`.
 
