@@ -30,11 +30,23 @@
  *             up naked while the other is still dressed.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * ⛔ HARD EXCLUSIONS — never add a card containing: oral–genital contact in any
- *    direction, anal in any form, a third person as a required act, or anything
- *    requiring the other person to invent a scenario from nothing.
- *    Mouth goes on the BODY: neck, ears, throat, collarbone, chest, stomach,
- *    wrists, fingers. Never mouth-on-genitals. These outrank every card.
+ * ⛔ HARD EXCLUSIONS — what is still never written: a third person as an INVOLVED
+ *    act, or anything requiring the other person to invent a scenario from
+ *    nothing. Mouth on the BODY (neck, ears, throat, collarbone, chest, stomach,
+ *    wrists, fingers) remains the default register.
+ *
+ * ⭐ ORAL AND ANAL ARE NOW CONTENT — RULE CHANGE (2026-10-28, by request).
+ *    They were excluded outright. They are not any more. They exist as
+ *    DIRECTIONAL cards, gated by four directional Limits acts — oral_give ·
+ *    oral_receive · anal_give · anal_receive — evaluated PER PERSON at draw
+ *    time. Giving and receiving are different limits, so a card is dealt only
+ *    when the role EACH of you would play in it is not a hard no for that
+ *    person. A card whose text matched globally would block both directions the
+ *    moment either of you vetoed either, which is the wrong answer: not being
+ *    willing to give says nothing about being willing to receive.
+ *    ⚠️ Until both of you have rated those four acts, nothing here is blocked.
+ *    The app has no opinion until you give it one — rate Limits before playing
+ *    the top level.
  *
  * ⚠️ THIRD PERSON — the distinction (2026-10-28). A third person as an INVOLVED
  *    act is still excluded and always will be. Being SEEN is different: tier 4
@@ -309,6 +321,19 @@ const TRUTHS = [
   { t:4, q:'What do you want me to take from you, and how far does it go?' },
   { t:4, q:'If I gave you an hour and one rule, what is the rule you would keep?' },
   { t:4, q:'What is the one thing you have never said out loud that you would say now?' },
+
+  /* ═══════════ v1.3.6 ADDITIONS — costumes and toys ═══════════
+     Tier is on every line; order inside the array does not matter, the pool
+     reads `c.tier`. ⛔ Still no oral–genital contact, no anal, no third person as
+     an involved act, nothing that needs a scenario invented from nothing. */
+  { t:1, q:'What is something of mine you want to wear with nothing else?' },
+  { t:2, q:'What do you want me to wear tonight?' },
+  { t:3, q:'What do you want to see me in, and what do you want to do about it?' },
+  { t:4, q:'What are you hoping I will ask you to put on?' },
+  { t:4, q:'What is something you want me to put on you, and then take off you?' },
+  { t:4, q:'What is a toy you want me to use on you that you have never asked for?' },
+  { t:4, q:'Would you want to be tied and used with a toy without being asked first?' },
+  { t:4, q:'Would you want to beg for it out loud while it is happening?' },
 ];
 
 /* Every dare carries `layer` when clothing comes off, so the engine can keep
@@ -368,6 +393,30 @@ const DARES = [
   { t:4, q:'One instruction: do not move. Hold it for two minutes and one item of yours comes off.', layer:{ who:'self', n:1 }, secs:120 },
   { t:4, q:'Tell them to say out loud what they want, then give it to them.' },
   { t:4, q:'Decide what comes off them, and in what order. They do not choose.', layer:{ who:'partner', n:1 } },
+
+  /* ═══════════ v1.3.6 ADDITIONS — costumes and toys ═══════════
+     ⚠️ Cards NAME the toy (vibrator / insertable / clamp) so the right Limits veto
+     matches. A card that just said "a toy" would fall through all three acts. */
+  { t:1, q:'Put on one of their shirts. Nothing else. Then walk back in the room.' },
+  { t:2, q:'Tell them what to put on, and wait until they have done it.' },
+  { t:2, q:'Use the vibrator on them over the clothing until they tell you to stop.' },
+  { t:3, q:'Give them one thing of yours to wear and nothing else. Then look at them.' },
+  { t:3, q:'Use the vibrator on them for one minute, then stop. Do not explain.', secs:60 },
+  { t:3, q:'Hand them a toy and tell them to use it on themselves while you watch.' },
+  { t:4, q:'Bind their hands, then use your mouth everywhere except where they want it most.' },
+  { t:4, q:'Tell them to choose a toy and use it on themselves while you watch and say nothing.' },
+  { t:4, q:'Tie their hands above their head and use the vibrator until they ask you to stop.' },
+  { t:4, q:'Put a clamp on them, then take your time with everything else first.', secs:120 },
+  { t:4, q:'Dress them yourself, item by item, then take it all off again.' },
+
+  /* ═══════════ v1.3.7 — oral and anal, BOTH DIRECTIONS ═══════════
+     ⚠️ `acts` is what makes these safe. holder = the role the person drawing it
+     plays; other = the role their partner plays. Each is checked against that
+     person's own hard no, so one willingness never implies the other. */
+  { t:3, q:'Go down on them and do not stop until they tell you to.', acts:{ holder:['oral_give'], other:['oral_receive'] } },
+  { t:3, q:'Have them go down on you, and tell them when to stop.',   acts:{ holder:['oral_receive'], other:['oral_give'] } },
+  { t:4, q:'Take them from behind, slowly, and do not let them move.', acts:{ holder:['anal_give'], other:['anal_receive'] } },
+  { t:4, q:'Have them take you from behind and tell them exactly how.', acts:{ holder:['anal_receive'], other:['anal_give'] } },
 ];
 
 /* ═══════════════════════════════════════════════════ 4 · KINDLING (86)
@@ -477,6 +526,32 @@ const KINDLING = [
   { t:4, q:'Take charge for five minutes. Every instruction is a single word.', secs:300 },
   { t:4, q:'Make them ask for it out loud before you do anything.' },
   { t:4, q:'Hold them still and use only your mouth until they tell you to stop.', secs:180 },
+
+  /* ═══════════ v1.3.6 ADDITIONS — costumes and toys ═══════════
+     Inferno was the thinnest level in the app at ten cards; these are mostly
+     tier 4 for that reason. ⛔ Same exclusions. Cards name the toy so the veto matches. */
+  { t:1, q:'Take off what you have on and put on one of their shirts. Nothing else.' },
+  { t:1, q:'Put on the tank top and boxer briefs they name, and let them look.' },
+  { t:2, q:'Dress them in something of yours. Choose it. Say nothing about why.' },
+  { t:2, q:'Put on what they tell you to, then stand there until they say something.' },
+  { t:3, q:'Have them put on your shirt and nothing else, then undo the buttons yourself.' },
+  { t:3, q:'Use the vibrator on them over the clothing until they tell you to stop.' },
+  { t:3, q:'Put a clamp on them, then wait. Do not take it off until they ask twice.' },
+  { t:3, q:'Tell them to choose a toy. Whatever they pick is what you use.' },
+  { t:4, q:'Choose what they wear, make them put it on in front of you, then take it off again.' },
+  { t:4, q:'Use the vibrator on them and stop the moment they get close. Three times.' },
+  { t:4, q:'Make them hold the vibrator against themselves while you watch. They stop when you say.' },
+  { t:4, q:'Use the insertable toy on them, slowly, and tell them exactly what you are doing.' },
+  { t:4, q:'Blindfold them, put a clamp on, and leave the room for one minute.', secs:60 },
+  { t:4, q:'Bind their hands, then use your mouth everywhere except where they want it most.' },
+  { t:4, q:'Hand them the toy box and tell them to choose and use one on themselves while you watch.' },
+  { t:4, q:'Use the vibrator on them until they beg, then stop and leave them there.' },
+
+  /* ═══════════ v1.3.7 — oral and anal, BOTH DIRECTIONS ═══════════ */
+  { t:3, q:'Go down on them and do not come up until they say so.', acts:{ holder:['oral_give'], other:['oral_receive'] } },
+  { t:3, q:'Have them go down on you and hold their head there.',    acts:{ holder:['oral_receive'], other:['oral_give'] } },
+  { t:4, q:'Take them from behind, slowly, and keep them still.',    acts:{ holder:['anal_give'], other:['anal_receive'] } },
+  { t:4, q:'Have them take you from behind. Say nothing.',           acts:{ holder:['anal_receive'], other:['anal_give'] } },
 ];
 
 /* ═══════════════════════════════════════════════════════════ ASSEMBLY ═══ */
@@ -519,6 +594,7 @@ const mk = (deck, c, extra = {}) => ({
   lo: c.lo || null,
   hi: c.hi || null,
   secs: c.secs || null,
+  acts: c.acts || null,
   pair: c.pair || null,
   map: c.map || null,
   ...extra,

@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.5 · **286 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.7 · **329 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -49,8 +49,8 @@ spent.
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
 | **The Menu** | Questions | 66 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 86 | rounds 1–5 / 6–11 / 12–17 / 18+ |
-| **Kindling** | Games | 86 | Spark → Flame → Blaze → Inferno |
+| **Truth or Dare** | Games | 109 | rounds 1–5 / 6–11 / 12–17 / 18+ |
+| **Kindling** | Games | 106 | Spark → Flame → Blaze → Inferno |
 
 ### Tier labels are per-deck
 
@@ -227,18 +227,73 @@ seen, for a third person, or for **pain as a category**. Four families were adde
 | `exhib` | being seen — shown off, watched by someone else, filmed, posted |
 | `cuck` | your partner with someone else — **no cards exist and none will** |
 | `pain` | impact, biting, clamps — an umbrella over `impact` + `marking` |
+| `toy_vibe` | vibrator or wand |
+| `toy_insert` | an insertable toy (vaginal) |
+| `toy_clamp` | clamps |
+| `costume` | dressing up — yours, theirs, or what they pick |
+| `undress` | being undressed, or undressing for them |
+| `oral_give` | giving oral |
+| `oral_receive` | receiving oral |
+| `anal_give` | anal — giving |
+| `anal_receive` | anal — receiving |
+
+### ⭐ Directional vetoes — giving is not receiving
+
+`oral_give` and `oral_receive` are **separate limits**, and so are `anal_give` and
+`anal_receive`. Someone who will not give may happily receive; a single "oral" row would
+force one answer to cover two different questions.
+
+**This needed a real engine change, not a wider regex.** A card like *"Go down on them"*
+means **giving** for whoever draws it and **receiving** for their partner — the same
+sentence is two different acts depending on the hand holding it. The old veto matched
+card *text* globally, so the moment either of you vetoed either direction it would have
+deleted **both** cards, including the one you would have loved.
+
+So those cards carry an `acts` map and are evaluated **per person at draw time**:
+
+```js
+{ q:'Go down on them and do not stop until they tell you to.',
+  acts:{ holder:['oral_give'], other:['oral_receive'] } }
+```
+
+The global text veto is skipped for any card with a map. Verified: if she hard-nos
+**giving**, *"Go down on them"* is withdrawn from **her** and still dealt to **him**,
+while *"Have them go down on you"* is withheld from **him** and still dealt to **her** —
+which is the correct asymmetry, and the thing a text filter cannot express.
+
+> ⚠️ **Until both of you have rated those four acts, nothing about them is blocked.**
+> The app has no opinion until you give it one. Rate Limits before playing at Edge or
+> above.
+
+**Toys are three acts, not one.** A single `toys` row meant a hard no on *clamps*
+also killed every *vibrator* card, which is not what "no clamps" means. Cards
+therefore **name the toy** — a card that just said "a toy" would fall through all
+three. The exception is the *choose-your-own* cards ("hand them the toy box"), which
+have no veto by design because the person doing it picks.
+
+**Costumes is clothing, not roleplay.** *Put on one of my shirts* is concrete — put it
+on, look, take it off. *Pretend you are a stranger* asks someone to invent a scene from
+nothing, which the corpus excludes and which returns empty for a partner who does not
+build scenarios unprompted. Wear the shirt. Do not be someone else.
+
+> ⛔ **`undress` closed the largest hole in the table.** The strip mechanic is the
+> most-used action in the corpus — every Truth or Dare layer card and half of Blaze
+> is built on it — and **nothing could veto it.** Someone who did not want to be
+> undressed had no way to say so, and every stripping dare was still dealt to them.
 
 **Overlap is deliberate.** A Hard No on `pain` removes the spanking cards *and* the biting
-ones. Vetoes **union**, so over-matching fails **safe**.
+ones. A Hard No on `costume` also removes the "what to wear" cards, which sit under
+`orders` too. Vetoes **union**, so over-matching fails **safe**.
 
 > ⛔ **The bug this fixed.** Six of the eighteen acts matched **zero** cards, including
 > `impact` and `photo`. Adding punishment or camera content would have dealt it to someone
 > who had hard-no'd exactly that, because the veto had nothing to match on. Every
 > punishment, forced-orgasm, voyeur and exhibition card now has a working Hard No.
 
-**The cost, stated plainly:** the list is 22 acts, so the rating round is 22 questions per
-person, not 18. Five of them (`toys`, `risky`, `waking`, `degrade`, `cuck`) filter nothing
-today — they record a position.
+**The cost, stated plainly:** the list is **30 acts**, so the rating round is **30
+questions per person**. Four of them (`risky`, `waking`, `degrade`, `cuck`) filter nothing
+today — they record a position. **This is the most likely thing to annoy you:** 30 taps a
+side is a long sitting. A "leave it unrated" option would fix it; there isn't one yet.
 
 ---
 
@@ -362,13 +417,13 @@ Then re-run `check.sh`.
 
 ## Open
 
-- **22 limit acts.** Five veto nothing: `toys`, `risky`, `waking`, `degrade`, and `cuck` —
-  no card in the corpus touches them, so those ratings record a position and filter
-  nothing. That is honest for `cuck` (a third person as an **involved** act stays
-  excluded) and a genuine gap for the other four. The veto is auditable:
-  `L.verify(CARDS)` prints the match count per act. **Six acts previously vetoed nothing
-  including `impact` and `photo`, which is why punishment and camera cards could land on
-  someone who had hard-no'd them — fixed in 1.3.5.**
+- **30 limit acts.** Four veto nothing: `risky`, `waking`, `degrade`, and `cuck` — no card
+  in the corpus touches them, so those ratings record a position and filter nothing. That
+  is deliberate for `cuck` (a third person as an **involved** act stays excluded). The
+  veto is auditable: `L.verify(CARDS)` prints the match count per act. **Six acts
+  previously vetoed nothing including `impact` and `photo`, which is why punishment and
+  camera cards could land on someone who had hard-no'd them — fixed in 1.3.5.**
+  **`undress` was missing entirely until 1.3.6, so the strip mechanic had no veto at all.**
 - **Limit matching is regex over card text**, not an explicit tag. A reworded card can
   silently stop matching. Explicit per-card tags would be sturdier; the regex is the
   reason a card can be added that no veto covers, so run `verify()` when you add one.

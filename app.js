@@ -239,9 +239,26 @@ function seenSet(person) {
   return new Set(s.seen[person] || []);
 }
 
+/* ⭐ A DIRECTIONAL VETO IS EVALUATED PER PERSON (2026-10-28).
+   "Go down on them" is GIVING oral for whoever holds it and RECEIVING oral for
+   their partner. One global text match would block BOTH directions the moment
+   either of you vetoed either — which is the wrong answer, because not being
+   willing to give says nothing about being willing to receive. So a card
+   carrying an `acts` map is checked against the role each person would actually
+   play in it: `holder` for the drawer, `other` for their partner. */
+function blockedFor(card, person) {
+  if (BLOCKED.has(card.id)) return true;      // global text vetoes still win
+  const a = card.acts;
+  if (!a) return false;
+  const them = OTHER(person);
+  const no = (who, list) => (list || []).some(k => state.limits[who] && state.limits[who][k] === 'hardno');
+  return no(person, a.holder) || no(them, a.other);
+}
+
 function availableFor(deckId, tier, person, { persistent = false, kind = null, extraFilter = null } = {}) {
   const seen = persistent ? state.qseen[person] : seenSet(person);
   return tierPool(deckId, tier).filter(c =>
+    !blockedFor(c, person) &&
     !seen.has(c.id) &&
     (c.for === 'both' || c.for === person) &&
     perspectiveOk(c, person) &&
@@ -1204,4 +1221,4 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck };
+export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck, blockedFor, availableFor };
