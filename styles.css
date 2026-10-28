@@ -326,7 +326,16 @@ body {
 }
 .opt:active, .opt.on { background: rgba(224,96,58,.2); border-color: var(--hot); }
 
-.scale { display: flex; gap: 8px; margin-top: 18px; }
+.scale { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+/* ⭐ 1 and 5 were unlabelled. Every scale card carries its own anchor words now. */
+.scaleAnchors {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 8px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dim);
+}
+.scale .scaleAnchors { flex: 0 0 100%; }
+.scaleAnchors span:last-child { text-align: right; }
 .scale button {
   flex: 1; padding: 16px 0;
   background: var(--bg2); color: var(--dim);
@@ -336,12 +345,13 @@ body {
 .scale button.on { background: var(--hot); border-color: var(--hot); color: #1a0f0b; }
 
 .cardActions { display: flex; gap: 10px; margin-top: 24px; }
-.pass, .done {
+.pass, .next, .done {
   flex: 1; padding: 16px; border-radius: 12px;
   font-size: 14px; font-weight: 800; letter-spacing: .1em;
   cursor: pointer; border: 1px solid var(--line);
 }
 .pass { background: transparent; color: var(--dim); }
+.next { background: var(--bg2); color: var(--ink); }
 .done { background: var(--hot); color: #1a0f0b; border-color: var(--hot); }
 .done.wide { flex: none; width: 100%; }
 

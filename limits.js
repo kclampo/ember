@@ -140,6 +140,17 @@ export function blockedIds(cards, answers) {
   return new Set(blockedCards(cards, answers).map(c => c.id));
 }
 
+/** Cards removed by a set of limit-act ids — used for the Menu gates as well as
+ *  the hard vetoes, so both are enforced by identical machinery. */
+export function blockedByRules(cards, ruleIds) {
+  const tests = ruleIds.map(id => RULE[id] && RULE[id].test).filter(Boolean);
+  if (!tests.length) return [];
+  return cards.filter(c => tests.some(t => t.test(c.q || '') || t.test(c.pitch || '')));
+}
+export function blockedIdsFor(cards, ruleIds) {
+  return blockedByRules(cards, ruleIds).map(c => c.id);
+}
+
 /** How many cards each rule would remove — for auditing the regexes. */
 export function verify(cards) {
   return LIMIT_ITEMS.map(item => ({

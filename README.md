@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.0 · **253 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.1 · **253 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -29,12 +29,17 @@ roles: **Him / Her**.
 
 | Tab | Decks | Persistence |
 |---|---|---|
-| **Questions** | Connection | seen-list **kept forever** + a Reset button |
-| **Games** | The Menu · Truth or Dare · Kindling | **12-hour session** + a New game button |
+| **Questions** | Connection · **The Menu** | **kept forever** + a Reset button |
+| **Games** | Truth or Dare · Kindling | **12-hour session** + a New game button |
 
 A connection question is **spent** the moment it is answered — re-asking it later is a
 replay with a contaminated answer. A game card is **not spent**; it is as good the
 tenth time. One needs memory, the other needs amnesia. Do not unify them.
+
+**Three buttons on Questions:** **Pass** puts the question *back* in the deck (not
+consumed — it can return), **Next** consumes it and deals another for the same person,
+**Done** consumes it and stops. Games keep two — a game card you skip is a card you
+spent.
 
 ---
 
@@ -43,7 +48,7 @@ tenth time. One needs memory, the other needs amnesia. Do not unify them.
 | Deck | Tab | Cards | Tiers |
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
-| **The Menu** | Games | 66 | Familiar → Specific → Edge |
+| **The Menu** | Questions | 66 | Familiar → Specific → Edge |
 | **Truth or Dare** | Games | 64 | escalates by round |
 | **Kindling** | Games | 75 | Spark → Flame → Blaze |
 
@@ -63,12 +68,30 @@ Warming, 6–11 Heated, 12+ Edge, shown as a status line.
   sees the other's answers while answering), then **everything opens**, mismatches
   included. Blind is about stopping *anchoring*, not about hiding: an answer given
   after seeing your partner's measures courtesy, not preference.
+  **⭐ Its answers are permanent and they GATE the games** — see below.
 - **Truth or Dare** — two buttons, the phone moves. ⭐ **The layer balance mechanic:**
   both start with the same number of items on; every strip dare names *whose* clothing
   comes off; the engine refuses any dare that would open a gap wider than 1, and
   prefers whoever is currently ahead. Some dares cost the holder. **Net: you both
   arrive at the same place at the same time, or nobody does.**
 - **Kindling** — kissing, touching, erotic play. A thing to do, not a thing to say.
+
+---
+
+## ⭐ How The Menu gates the games
+
+The Menu lives under **Questions** because it is about the two of you, not a game you
+play — and its answers **lock in**. Each Menu card carries a `gate` (a limit-act id).
+If **either** of you answers **"Not for me"** on it, that whole theme stops being dealt
+in Truth or Dare and Kindling.
+
+It is a **soft veto**: persisted, permanent, and driven by your answers rather than
+expiring with the 12-hour session. The hard veto in Limits is absolute and cannot be
+outvoted; the Menu gate is you telling the app what you don't want, once, and having it
+remember.
+
+Both are enforced by the same code path, and **neither ever touches the Connection
+deck** — a hard no on "being watched" must not delete a conversation question.
 
 ---
 

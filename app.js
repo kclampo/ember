@@ -25,6 +25,7 @@ const $ = id => document.getElementById(id);
 const LS = {
   names: 'ember.names', roles: 'ember.roles',
   qseen: 'ember.qseen', qdeck: 'ember.qdeck', qtier: 'ember.qtier',
+  menu: 'ember.menu',
   session: 'ember.session', limits: 'ember.limits', tab: 'ember.tab',
 };
 
@@ -46,6 +47,7 @@ const state = {
   qseen: load(LS.qseen, { him: [], her: [] }),
   qdeck: load(LS.qdeck, 'connection'),
   qtier: load(LS.qtier, 1),
+  menu: load(LS.menu, { seen: { him: [], her: [] }, ratings: { him: {}, her: {} } }),
   session: null,
   limits: load(LS.limits, { him: {}, her: {} }),
   limitsStage: 'idle',
@@ -102,13 +104,44 @@ let BLOCKED = new Set();
    conversation — a hard no on "being watched" must not delete "what's a thing
    your partner says that you could listen to all day". So the veto filters the
    game decks only. (Caught in test: connection cards were being excluded.) */
-function recomputeBlocked() {
-  const games = CARDS.filter(c => {
+function gameCards() {
+  return CARDS.filter(c => {
     const d = DECKS.find(x => x.id === c.deck);
     return d && d.tab === 'games';
   });
-  BLOCKED = L.blockedIds(games, state.limits);
 }
+
+/* ⭐ THE MENU GATES THE GAMES (Kevin, 2026-10-28: "it is more about us and
+   should be locked in questions that affect the other games").
+   A Menu card carries a `gate` — a limit-act id. If EITHER of you answers
+   "Not for me" on it, that whole theme stops being dealt in Truth or Dare and
+   Kindling. It is a soft veto: persisted, not a session setting, and it moves
+   with the answers rather than expiring in 12 hours. */
+function menuGates() {
+  const st = menuStore();
+  const gates = new Set();
+  for (const c of CARDS) {
+    if (!c.gate) continue;
+    if (st.ratings.him[c.id] === 'Not for me' || st.ratings.her[c.id] === 'Not for me') gates.add(c.gate);
+  }
+  return gates;
+}
+
+function recomputeBlocked() {
+  const games = gameCards();
+  BLOCKED = L.blockedIds(games, state.limits);
+  const g = menuGates();
+  if (g.size) for (const id of L.blockedIdsFor(games, [...g])) BLOCKED.add(id);
+}
+
+/* ══════════════════════════════════════════════════ The Menu store (persistent) */
+function menuStore() {
+  if (!state.menu || !state.menu.seen || !state.menu.ratings) {
+    state.menu = { seen: { him: [], her: [] }, ratings: { him: {}, her: {} } };
+  }
+  return state.menu;
+}
+function saveMenu() { save(LS.menu, menuStore()); }
 
 /* ══════════════════════════════════════════════════ pool / draw */
 const deckById = id => DECKS.find(d => d.id === id);
@@ -269,12 +302,15 @@ function remain() {
   const d = currentDeck();
   const tier = currentTier();
   let txt = '';
-  if (state.tab === 'questions') {
+  if (d === 'connection') {
     const p = tierPool(d, tier);
     const fresh = p.filter(c => !state.qseen.him.has(c.id) && !state.qseen.her.has(c.id)).length;
     txt = `${fresh} fresh of ${p.length} · kept forever`;
   } else if (d === 'menu') {
-    txt = `${tierPool(d, tier).length} in play`;
+    const st = menuStore();
+    const p = tierPool(d, tier);
+    const both = p.filter(c => st.ratings.him[c.id] !== undefined && st.ratings.her[c.id] !== undefined).length;
+    txt = `${both} of ${p.length} answered by you both · kept`;
   } else {
     const p = tierPool(d, tier);
     const s = getSession(d);
@@ -342,10 +378,31 @@ function renderCard(card, person, opts = {}) {
   } else if (card.answer === 'scale') {
     sW.hidden = false;
     for (let i = 1; i <= 5; i++) sW.appendChild(mkOpt(String(i)));
+    const anch = scaleAnchors(card);
+    if (anch) sW.appendChild(anch);
   }
   $('passBtn').hidden = false;
+  /* ⭐ THREE BUTTONS ON THE QUESTIONS TAB (Kevin, 2026-10-28). Pass throws the
+     question back in the deck, Next consumes it and deals another, Done
+     consumes it and stops. The games keep two — a game card you skip is a
+     card you spent. */
+  $('nextBtn').hidden = (state.tab !== 'questions');
   $('doneBtn').textContent = 'DONE';
-  $('cardHint').textContent = 'Pass costs nothing and needs no reason.';
+  $('cardHint').textContent = state.tab === 'questions'
+    ? 'Pass puts it back. Next keeps going. Done ends it.'
+    : 'Pass costs nothing and needs no reason.';
+}
+
+/* 1 and 5 were unlabelled — you could not tell which end was which. Every
+   `scale` card now carries its own anchor words. */
+function scaleAnchors(card) {
+  if (!card || !card.lo || !card.hi) return null;
+  const d = document.createElement('div');
+  d.className = 'scaleAnchors';
+  const l = document.createElement('span'); l.textContent = '1 · ' + card.lo;
+  const r = document.createElement('span'); r.textContent = '5 · ' + card.hi;
+  d.append(l, r);
+  return d;
 }
 
 function mkOpt(text) {
@@ -366,11 +423,17 @@ function selectedValue() {
 }
 
 /* ══════════════════════════════════════════════════ CONNECTION + KINDLING */
+let excludeOnce = new Set();   // just-passed cards, skipped for the NEXT draw only
+
 function drawSimple(person) {
   const d = currentDeck();
   const persistent = (d === 'connection');
   const tier = currentTier();
-  const pool = availableFor(d, tier, person, { persistent });
+  let pool = availableFor(d, tier, person, { persistent }).filter(c => !excludeOnce.has(c.id));
+  /* a PASS must never dead-end the deck — if the exclusion empties the pool,
+     ignore it and deal anyway */
+  if (!pool.length) pool = availableFor(d, tier, person, { persistent });
+  excludeOnce = new Set();
 
   if (!pool.length) { show('emptyView'); $('emptyMsg').textContent = 'That deck is spent at this level.'; return; }
 
@@ -417,21 +480,51 @@ function simpleDone() {
   persistSession();
 }
 
-function nextSimple() {
+/* ⭐ THREE BUTTONS on the Questions tab.
+   PASS  — the question goes back in the deck. Not consumed, so it can return.
+   NEXT  — answered. Consumed. Deal another for the same person.
+   DONE  — answered. Consumed. Back to setup. */
+function consumeCard() {
   const d = currentDeck();
   const s = getSession(d);
-  if (s.card && s.person) {
-    if (d === 'connection') {
-      state.qseen[s.person].add(s.card.id);
-      save(LS.qseen, { him: [...state.qseen.him], her: [...state.qseen.her] });
-    } else {
-      if (!s.seen[s.person].includes(s.card.id)) s.seen[s.person].push(s.card.id);
-    }
+  if (!s.card || !s.person) return;
+  if (d === 'connection') {
+    state.qseen[s.person].add(s.card.id);
+    save(LS.qseen, { him: [...state.qseen.him], her: [...state.qseen.her] });
+  } else {
+    if (!s.seen[s.person].includes(s.card.id)) s.seen[s.person].push(s.card.id);
   }
+}
+
+function clearCard() {
+  const s = getSession(currentDeck());
   s.card = null; s.person = null; s.revealed = false;
   persistSession();
+}
+
+function nextSimple() {
+  consumeCard();
+  clearCard();
   show('setup');
   paintSetup();
+}
+
+function nextQuestion() {
+  const s = getSession(currentDeck());
+  const person = s.person;
+  consumeCard();
+  clearCard();
+  if (person) drawSimple(person);
+  else { show('setup'); paintSetup(); }
+}
+
+function passQuestion() {
+  const s = getSession(currentDeck());
+  const person = s.person;
+  if (s.card) excludeOnce.add(s.card.id);
+  clearCard();
+  if (person) drawSimple(person);
+  else { show('setup'); paintSetup(); }
 }
 
 /* ══════════════════════════════════════════════════ TRUTH OR DARE */
@@ -506,39 +599,70 @@ function tdPass() {
 const MENU_N = 10;
 
 function startMenuRound() {
-  const s = getSession('menu');
+  const st = menuStore();
   const tier = state.qtier;
-  /* both players must rate the SAME cards, so the pool ignores per-person
-     perspective and takes anything either role could be given */
-  const pool = tierPool('menu', tier).filter(c =>
-    !s.seen.him.includes(c.id) && !s.seen.her.includes(c.id) &&
-    (c.as === 'any' || roleOf('him') === 'switch' || roleOf('her') === 'switch' ||
-     c.as === roleOf('him') || c.as === roleOf('her'))
-  );
-  if (pool.length < 3) { show('emptyView'); $('emptyMsg').textContent = 'Not enough cards left at this level. New game.'; return; }
+  /* Both players must rate the SAME cards, so the pool ignores per-person
+     perspective and takes anything either role could be given. Cards BOTH have
+     already rated are done forever; a card only one of you rated comes back so
+     the other can catch up. */
+  const pool = tierPool('menu', tier).filter(c => {
+    const ratedBoth = st.ratings.him[c.id] !== undefined && st.ratings.her[c.id] !== undefined;
+    if (ratedBoth) return false;
+    return c.as === 'any' || roleOf('him') === 'switch' || roleOf('her') === 'switch' ||
+           c.as === roleOf('him') || c.as === roleOf('her');
+  });
+  if (pool.length < 1) {
+    show('emptyView');
+    $('emptyMsg').textContent = 'You have both answered every card at this level.';
+    return;
+  }
+  const halfDone = pool.filter(c =>
+    (st.ratings.him[c.id] !== undefined) !== (st.ratings.her[c.id] !== undefined));
+  const fresh = pool.filter(c =>
+    st.ratings.him[c.id] === undefined && st.ratings.her[c.id] === undefined);
+  const ordered = [...shuffle(halfDone), ...shuffle(fresh)];
+  const ids = ordered.slice(0, MENU_N).map(c => c.id);
 
-  const ids = pool.sort(() => Math.random() - 0.5).slice(0, MENU_N).map(c => c.id);
-  s.menu = { ids, ratings: { him: {}, her: {} }, stage: 'rate', who: 'him', idx: 0 };
-  persistSession();
+  st.round = { ids, who: 'him', idx: 0, ratings: { him: {}, her: {} } };
+  saveMenu();
   paintRate();
 }
 
-function paintRate() {
-  const s = getSession('menu');
-  const m = s.menu;
-  if (!m) { show('setup'); return; }
-  if (m.idx >= m.ids.length) {
-    if (m.who === 'him') {
-      m.who = 'her'; m.idx = 0; m.stage = 'handoff'; persistSession();
-      $('handoffMsg').textContent = `Pass the phone to ${nameOf('her')}.`;
-      show('handoffView'); return;
-    }
-    m.stage = 'reveal'; persistSession(); paintResults(); return;
+function shuffle(a) { return a.slice().sort(() => Math.random() - 0.5); }
+function persistMenuRound() { saveMenu(); }
+
+function menuWho() {
+  const st = menuStore();
+  if (!st.round) return null;
+  const who = st.round.who, other = OTHER(who);
+  /* advance past anything this person already answered in a previous round */
+  while (st.round.idx < st.round.ids.length &&
+         st.ratings[who][st.round.ids[st.round.idx]] !== undefined) {
+    st.round.idx += 1;
   }
-  const card = CARDS.find(c => c.id === m.ids[m.idx]);
+  if (st.round.idx >= st.round.ids.length) {
+    if (who === 'him') { st.round.who = 'her'; st.round.idx = 0; saveMenu(); return 'handoff'; }
+    return 'reveal';
+  }
+  return 'rate';
+}
+
+function paintRate() {
+  const st = menuStore();
+  if (!st.round) { show('setup'); return; }
+  const stage = menuWho();
+  if (stage === 'handoff') {
+    $('handoffMsg').textContent = `Pass the phone to ${nameOf('her')}.`;
+    show('handoffView');
+    return;
+  }
+  if (stage === 'reveal') { paintResults(); return; }
+
+  const who = st.round.who;
+  const card = CARDS.find(c => c.id === st.round.ids[st.round.idx]);
   show('rateView');
-  $('rateWho').textContent = nameOf(m.who);
-  $('rateProgress').textContent = `${m.idx + 1} of ${m.ids.length}`;
+  $('rateWho').textContent = nameOf(who);
+  $('rateProgress').textContent = `${st.round.idx + 1} of ${st.round.ids.length}`;
   const p = $('ratePitch');
   if (card.pitch) { p.hidden = false; p.textContent = card.pitch; } else { p.hidden = true; p.textContent = ''; }
   $('rateQ').textContent = card.q;
@@ -548,29 +672,33 @@ function paintRate() {
   const list = card.answer === 'scale' ? ['1','2','3','4','5'] : (card.opts || WOULD_OPTS);
   for (const o of list) {
     const b = document.createElement('button');
-    b.className = 'opt' + (m.ratings[m.who][card.id] === o ? ' on' : '');
+    b.className = 'opt';
     b.textContent = o;
     b.addEventListener('click', () => {
-      m.ratings[m.who][card.id] = o;
-      m.idx += 1;
-      persistSession();
+      /* ⭐ these ratings are PERMANENT. They drive the gates. */
+      st.ratings[who][card.id] = o;
+      st.round.idx += 1;
+      saveMenu();
+      recomputeBlocked();
       paintRate();
     });
     w.appendChild(b);
   }
+  if (card.answer === 'scale') {
+    const anch = scaleAnchors(card);
+    if (anch) w.appendChild(anch);
+  }
 }
 
 function paintResults() {
-  const s = getSession('menu');
-  const m = s.menu;
+  const st = menuStore();
+  const r = st.round;
   const list = $('resultList');
   list.replaceChildren();
-  let any = 0;
-  for (const id of m.ids) {
+  for (const id of r.ids) {
     const card = CARDS.find(c => c.id === id);
-    const mine = m.ratings.him[id], theirs = m.ratings.her[id];
+    const mine = st.ratings.him[id], theirs = st.ratings.her[id];
     const v = verdictOf(card, mine, theirs);
-    any++;
     const row = document.createElement('div');
     row.className = 'resRow' + (v ? ' ' + v : '');
     const q = document.createElement('p');
@@ -594,20 +722,17 @@ function paintResults() {
     }
     list.appendChild(row);
   }
-  $('resultSub').textContent = `${any} cards · nobody saw the other's answers until now`;
+  const g = menuGates();
+  $('resultSub').textContent = `${r.ids.length} cards · nobody saw the other's answers until now` +
+    (g.size ? ` · ${g.size} theme${g.size === 1 ? '' : 's'} locked out of the games` : '');
   show('resultView');
 }
 
 function finishMenuRound() {
-  const s = getSession('menu');
-  if (s.menu) {
-    for (const id of s.menu.ids) {
-      if (!s.seen.him.includes(id)) s.seen.him.push(id);
-      if (!s.seen.her.includes(id)) s.seen.her.push(id);
-    }
-  }
-  s.menu = null;
-  persistSession();
+  const st = menuStore();
+  st.round = null;
+  saveMenu();
+  recomputeBlocked();
   show('setup');
   paintSetup();
 }
@@ -763,20 +888,29 @@ $('herBtn').addEventListener('click', () => drawSimple('her'));
 $('truthBtn').addEventListener('click', () => drawTD('truth'));
 $('dareBtn').addEventListener('click', () => drawTD('dare'));
 $('startRoundBtn').addEventListener('click', startMenuRound);
-$('handoffBtn').addEventListener('click', () => { const s = getSession('menu'); if (s.menu) { s.menu.stage = 'rate'; persistSession(); paintRate(); } });
+/* The handoff transition ALREADY happened inside menuWho() — it flipped the
+   round to the second person before showing this screen. This handler must not
+   touch state; it only re-renders. (v1.3.1 shipped this pointing at the retired
+   session-based menu, so it did nothing and the round silently corrupted.) */
+$('handoffBtn').addEventListener('click', () => paintRate());
 $('resultDone').addEventListener('click', finishMenuRound);
 $('limitsBtn').addEventListener('click', openLimits);
 $('limitsClose').addEventListener('click', () => { show('setup'); paintSetup(); });
 
 $('doneBtn').addEventListener('click', () => {
   const d = currentDeck();
-  if (d === 'truthdare') tdDone();
-  else simpleDone();
+  if (d === 'truthdare') { tdDone(); return; }
+  if (state.tab === 'questions') { nextSimple(); return; }  // Done = consume and stop
+  simpleDone();                                            // games: kindling reveal path
+});
+$('nextBtn').addEventListener('click', () => {
+  if (state.tab === 'questions') nextQuestion();
 });
 $('passBtn').addEventListener('click', () => {
   const d = currentDeck();
-  if (d === 'truthdare') tdPass();
-  else nextSimple();
+  if (d === 'truthdare') { tdPass(); return; }
+  if (state.tab === 'questions') { passQuestion(); return; }
+  nextSimple();
 });
 
 $('newGameBtn').addEventListener('click', () => {
@@ -786,8 +920,13 @@ $('newGameBtn').addEventListener('click', () => {
 });
 
 $('resetQBtn').addEventListener('click', () => {
+  /* the Questions tab reset clears BOTH: the Connection seen-list and every
+     Menu rating. Both are questions, both are permanent, so one button. */
   state.qseen = { him: new Set(), her: new Set() };
   save(LS.qseen, { him: [], her: [] });
+  state.menu = { seen: { him: [], her: [] }, ratings: { him: {}, her: {} } };
+  saveMenu();
+  recomputeBlocked();
   paintSetup();
 });
 
@@ -803,12 +942,11 @@ paintTabs();
 buildDeckSel();
 paintSetup();
 
-/* resume a menu round that was mid-flight */
-if (state.session && state.session.menu && state.session.menu.stage) {
-  const st = state.session.menu.stage;
-  if (st === 'rate') { state.qdeck = 'menu'; setTab('games'); paintRate(); }
-  else if (st === 'handoff') { state.qdeck = 'menu'; setTab('games'); $('handoffMsg').textContent = `Pass the phone to ${nameOf('her')}.`; show('handoffView'); }
-  else if (st === 'reveal') { state.qdeck = 'menu'; setTab('games'); paintResults(); }
+/* resume a Menu round that was mid-flight — it lives in its own store now */
+if (state.menu && state.menu.round) {
+  state.qdeck = 'menu';
+  setTab('questions');
+  paintRate();
 }
 
 /* ══════════════════════════════════════════════════ service worker */

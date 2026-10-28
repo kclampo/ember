@@ -1,4 +1,4 @@
 {
-  "version": "1.3.0",
-  "notes": "Two tabs. Questions keep a seen-list forever; Games reset after 12 hours or a New game. Four decks replace five: Connection (Notice/Consider/Admit), The Menu (blind round, then everything opens), Truth or Dare (two buttons, the phone moves, it heats up by round), Kindling (Spark/Flame/Blaze). Name and role (DOM/SUB/SWITCH) for each of you. New Limits screen with a five-word scale, a hidden sequential process, and a Hard No that removes cards from every game."
+  "version": "1.3.1",
+  "notes": "The Menu moved to Questions and now gates the games — answer 'Not for me' and that theme stops being dealt in Truth or Dare and Kindling. Questions get three buttons: Pass puts it back, Next deals another, Done ends. Scale cards label both ends so 1 and 5 mean something. The vague 'who decides' style questions are rewritten. Connection now asks about the last week and how you feel now, not twenty years ago."
 }
