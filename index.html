@@ -26,6 +26,7 @@
     </div>
     <div class="hdr-right">
       <button id="limitsBtn" class="hdrBtn">Limits</button>
+      <button id="tonightBtn" class="hdrBtn">Tonight</button>
       <span id="version" class="ver">v—</span>
     </div>
   </header>
@@ -164,6 +165,19 @@
       <button id="limitsClose" class="link">close</button>
     </div>
     <div id="limitsBody"></div>
+  </section>
+
+  <!-- ---------------------------------------------------- TONIGHT -->
+  <!-- ⭐ A DAILY SWITCHBOARD, SEPARATE FROM LIMITS. Limits are permanent and take
+       effort to set. Tonight is the two-minute thing you flip when the day is
+       what it is. -->
+  <section id="tonightView" class="panel" hidden>
+    <div class="limitsHead">
+      <span class="lbl" style="margin:0">Tonight</span>
+      <button id="tonightClose" class="link">close</button>
+    </div>
+    <p class="hint" id="tonightHint"></p>
+    <div id="tonightBody"></div>
   </section>
 
   <!-- ---------------------------------------------------- STAGE PROMPT -->

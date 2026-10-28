@@ -249,6 +249,24 @@ const MENU = [
   { t:3, a:'thisor',q:'Which end of it do you actually want?', opts:['Being in charge and answerable for it','Giving it up entirely'] },
   { t:3, a:'scale', q:'How far do you actually want to go, if nothing was in the way?',
     lo:'Nothing further', hi:'As far as it goes' },
+
+  /* ═══════════ v1.3.8 — waking · risky · degrade · cuck ═══════════
+     ⭐ These four had no way to be expressed (2026-10-28: "waking should have
+     cards in the menu, same with cuck, degrade, waking and risky"). `risky` and
+     `waking` had one or three cards each; `degrade` and `cuck` had nothing at all.
+     Each carries its `gate`, so a Hard no here removes the theme from the games. */
+  { t:2, a:'would', q:'Being woken up by their hands, before you are properly awake.', gate:'waking' },
+  { t:3, a:'would', q:'Being woken up with their mouth on you, no warning.',           gate:'waking' },
+  { t:2, a:'would', q:'Somewhere you would have to be quiet, or get caught.',          gate:'risky' },
+  { t:3, a:'would', q:'Somewhere that is not a bed, and not your own house.',          gate:'risky' },
+  { t:3, a:'would', q:'Being called something degrading, and made to answer to it.',   gate:'degrade' },
+  { t:3, a:'would', q:'Being told what you are, in one word, and made to agree.',      gate:'degrade' },
+  /* ⛔ CUCK — MENU ONLY, AND IT ALWAYS WILL BE. This is a WANT-RATING, not an act
+     card: it records your position and gates the theme. A third person as an
+     INVOLVED act stays excluded from the games, so no dare will ever require it.
+     The rating exists because "is that a hard no for you" is worth knowing. */
+  { t:3, a:'would', q:'Watching your partner with someone else.',                      gate:'cuck' },
+  { t:3, a:'would', q:'Your partner telling you about someone else, in detail.',       gate:'cuck' },
 ];
 
 /* ═══════════════════════════════════════════════════ 3 · TRUTH OR DARE (60)
@@ -417,6 +435,13 @@ const DARES = [
   { t:3, q:'Have them go down on you, and tell them when to stop.',   acts:{ holder:['oral_receive'], other:['oral_give'] } },
   { t:4, q:'Take them from behind, slowly, and do not let them move.', acts:{ holder:['anal_give'], other:['anal_receive'] } },
   { t:4, q:'Have them take you from behind and tell them exactly how.', acts:{ holder:['anal_receive'], other:['anal_give'] } },
+
+  /* ═══════════ v1.3.8 — waking · risky · degrade ═══════════
+     ⚠️ Without these the Menu gates for those themes would be inert: a gate can
+     only remove a GAME card, and there were none to remove. */
+  { t:2, q:'Wake them with your mouth on their neck, and do not stop when they stir.' },
+  { t:3, q:'Call them something degrading, once, and watch what it does to them.' },
+  { t:2, q:'Take one item off them somewhere you could be caught.' },
 ];
 
 /* ═══════════════════════════════════════════════════ 4 · KINDLING (86)
@@ -552,6 +577,11 @@ const KINDLING = [
   { t:3, q:'Have them go down on you and hold their head there.',    acts:{ holder:['oral_receive'], other:['oral_give'] } },
   { t:4, q:'Take them from behind, slowly, and keep them still.',    acts:{ holder:['anal_give'], other:['anal_receive'] } },
   { t:4, q:'Have them take you from behind. Say nothing.',           acts:{ holder:['anal_receive'], other:['anal_give'] } },
+
+  /* ═══════════ v1.3.8 — waking · risky · degrade ═══════════ */
+  { t:2, q:'Wake them with your hands and keep going until they are awake enough to answer.' },
+  { t:2, q:'Kiss them somewhere someone could walk in. Do not stop when you hear something.' },
+  { t:3, q:'Tell them what they are, in one word, and make them repeat it back.' },
 ];
 
 /* ═══════════════════════════════════════════════════════════ ASSEMBLY ═══ */

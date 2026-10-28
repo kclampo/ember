@@ -28,7 +28,35 @@ const LS = {
   menu: 'ember.menu',
   session: 'ember.session', limits: 'ember.limits', tab: 'ember.tab',
   limitsrt: 'ember.limitsrt',
+  tonight: 'ember.tonight',
 };
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/* ⭐ TONIGHT — A SECOND, DAILY SWITCHBOARD (2026-10-28: "maybe there needs to be
+   a part of the limits, or a second section where things can be turned on or
+   off... if she's on her period certain things can be done but others cannot...
+   check boxes almost that can be turned off and on depending on the day").
+   ⛔ IT CAN ONLY EVER SUBTRACT. Every switch turns act families OFF for the
+   evening. Nothing here can turn something back ON that a Limit has ruled out —
+   a nightly mood must never be able to overrule a hard no, and "the toy box is
+   open tonight" is the DEFAULT state (switches off), not a switch you flip.
+   ⚠️ It expires at midnight: a stale toggle from Tuesday must not silently
+   govern Saturday. */
+const TONIGHT_SWITCHES = [
+  { id: 'period',  label: "Period night — nothing oral, nothing anal",
+    off: ['oral_give', 'oral_receive', 'anal_give', 'anal_receive', 'toy_insert'] },
+  { id: 'notoys',  label: 'No toys tonight — a natural night',
+    off: ['toy_vibe', 'toy_insert', 'toy_squeeze'] },
+  { id: 'nopain',  label: 'No pain tonight',
+    off: ['pain', 'impact', 'toy_squeeze'] },
+  { id: 'notie',   label: 'No tying, no holding still',
+    off: ['rope', 'restraint'] },
+  { id: 'noblind', label: 'No blindfold tonight',
+    off: ['blindfold'] },
+  { id: 'nodress', label: 'No dressing up tonight',
+    off: ['costume'] },
+];
 
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -55,6 +83,7 @@ const state = {
   limitsWho: 'him',
   limitIdx: 0,
   limitsDraft: { him: {}, her: {} },
+  tonight: load(LS.tonight, null),
 };
 state.qseen = { him: new Set(state.qseen.him || []), her: new Set(state.qseen.her || []) };
 
@@ -86,7 +115,7 @@ function nameOf(p) {
 function roleOf(p) { return state.roles[p] || 'switch'; }
 
 /* ══════════════════════════════════════════════════ view plumbing */
-const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'stageView', 'emptyView'];
+const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'tonightView', 'stageView', 'emptyView'];
 function show(which) {
   stopTimer();          // a timer must never outlive the card that started it
   for (const v of VIEWS) $(v).hidden = (v !== which);
@@ -126,6 +155,31 @@ function persistSession() { if (state.session) save(LS.session, state.session); 
 let BLOCKED = new Set();
 let timerH = null;          // the card timer's interval handle — exactly one may exist
 
+/* ⭐ TONIGHT, resolved for TODAY. A record from another date is discarded on read,
+   so nothing carries over by accident. */
+function tonight() {
+  if (!state.tonight || state.tonight.date !== today() || !Array.isArray(state.tonight.on)) {
+    state.tonight = { date: today(), on: [] };
+    save(LS.tonight, state.tonight);
+  }
+  return state.tonight;
+}
+
+/* every act id the enabled switches take off the table tonight */
+function tonightOffActs() {
+  const t = tonight();
+  const out = new Set();
+  for (const s of TONIGHT_SWITCHES) if (t.on.includes(s.id)) for (const a of s.off) out.add(a);
+  return [...out];
+}
+
+/* ONE place that answers "may this act happen tonight, for this person" —
+   permanent Limit OR tonight's switch. Both only ever say no. */
+function actIsOff(who, actId) {
+  if (tonightOffActs().includes(actId)) return true;
+  return !!(state.limits[who] && state.limits[who][actId] === 'hardno');
+}
+
 /* ⛔ A VETO APPLIES TO ACTIONS, NOT TO QUESTIONS. The Connection deck is
    conversation — a hard no on "being watched" must not delete "what's a thing
    your partner says that you could listen to all day". So the veto filters the
@@ -161,6 +215,9 @@ function recomputeBlocked() {
   BLOCKED = L.blockedIds(games, state.limits);
   const g = menuGates();
   if (g.size) for (const id of L.blockedIdsFor(games, [...g])) BLOCKED.add(id);
+  /* tonight's switches ride the SAME machinery as a hard no */
+  const t = tonightOffActs();
+  if (t.length) for (const id of L.blockedIdsFor(games, t)) BLOCKED.add(id);
 }
 
 /* ══════════════════════════════════════════════════ The Menu store (persistent) */
@@ -251,7 +308,7 @@ function blockedFor(card, person) {
   const a = card.acts;
   if (!a) return false;
   const them = OTHER(person);
-  const no = (who, list) => (list || []).some(k => state.limits[who] && state.limits[who][k] === 'hardno');
+  const no = (who, list) => (list || []).some(k => actIsOff(who, k));
   return no(person, a.holder) || no(them, a.other);
 }
 
@@ -999,6 +1056,42 @@ function finishMenuRound() {
   paintSetup();
 }
 
+/* ══════════════════════════════════════════════════ TONIGHT */
+function openTonight() {
+  recomputeBlocked();
+  paintTonight();
+}
+
+function paintTonight() {
+  show('tonightView');
+  const t = tonight();
+  $('tonightHint').textContent =
+    'For tonight only, and only one direction: these take things OFF the decks. Nothing here can give back something your Limits have ruled out. It clears itself tomorrow.';
+  const host = $('tonightBody');
+  host.replaceChildren();
+  for (const s of TONIGHT_SWITCHES) {
+    const row = document.createElement('button');
+    row.className = 'opt wide' + (t.on.includes(s.id) ? ' on' : '');
+    row.textContent = s.label;
+    row.addEventListener('click', () => {
+      const i = t.on.indexOf(s.id);
+      if (i >= 0) t.on.splice(i, 1); else t.on.push(s.id);
+      save(LS.tonight, t);
+      recomputeBlocked();
+      paintTonight();
+    });
+    host.appendChild(row);
+  }
+  const n = tonightOffActs().length;
+  const foot = document.createElement('p');
+  foot.className = 'hint2';
+  foot.textContent = n
+    ? `${n} act famil${n === 1 ? 'y' : 'ies'} off tonight.`
+    : 'Nothing switched off — the decks are exactly as your Limits allow.';
+  host.appendChild(foot);
+  host.appendChild(btn('Back', 'done wide', () => { show('setup'); paintSetup(); }));
+}
+
 /* ══════════════════════════════════════════════════ LIMITS */
 function openLimits() {
   recomputeBlocked();
@@ -1169,6 +1262,8 @@ $('startRoundBtn').addEventListener('click', startMenuRound);
 $('handoffBtn').addEventListener('click', () => paintRate());
 $('resultDone').addEventListener('click', finishMenuRound);
 $('limitsBtn').addEventListener('click', openLimits);
+$('tonightBtn').addEventListener('click', openTonight);
+$('tonightClose').addEventListener('click', () => { show('setup'); paintSetup(); });
 $('limitsClose').addEventListener('click', () => { show('setup'); paintSetup(); });
 
 /* ⭐ ONE WIRING FOR BOTH TABS (2026-10-28: "the buttons should be the same pass
@@ -1221,4 +1316,4 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck, blockedFor, availableFor };
+export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck, blockedFor, availableFor, openTonight, paintTonight, tonightOffActs, actIsOff, TONIGHT_SWITCHES };

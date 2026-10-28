@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.7 · **329 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.8 · **343 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -48,7 +48,7 @@ spent.
 | Deck | Tab | Cards | Tiers |
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
-| **The Menu** | Questions | 66 | Familiar → Specific → Edge |
+| **The Menu** | Questions | 74 | Familiar → Specific → Edge |
 | **Truth or Dare** | Games | 109 | rounds 1–5 / 6–11 / 12–17 / 18+ |
 | **Kindling** | Games | 106 | Spark → Flame → Blaze → Inferno |
 
@@ -189,6 +189,40 @@ half of the old deck read wrong for one person.
 
 ---
 
+## ⭐ Tonight — the daily switchboard
+
+**A second panel, next to Limits, and deliberately not the same thing.** Limits are
+permanent and take a sitting to set. Tonight is the two-minute thing you flip because
+of what today actually is.
+
+Open it from the **TONIGHT** button in the header:
+
+| Switch | Takes off |
+|---|---|
+| **Period night** | oral both ways, anal both ways, insertable toys |
+| **No toys tonight** | vibrator, insertable, squeeze |
+| **No pain tonight** | pain, impact, squeeze |
+| **No tying** | rope, restraint |
+| **No blindfold** | blindfold |
+| **No dressing up** | costume |
+
+### ⛔ It can only ever SUBTRACT
+
+**Nothing here can grant what a Limit has withheld.** A nightly mood must never be able to
+overrule a hard no — so *"the toy box is open tonight"* is the **default state** (no
+switches flipped), not a switch you turn on. Every toggle removes; none adds. If it could
+add, "she's in the mood tonight" would quietly undo a limit she set on purpose, and the
+limit would stop meaning anything.
+
+**It expires at midnight.** A record from another date is discarded on read, so a toggle
+from Tuesday cannot silently govern Saturday. Verified: a stored `{date:'2020-01-01'}` is
+thrown away and the board comes up clear.
+
+Switches ride the **same machinery as a hard no** — one code path, both directions, and
+they respect the per-person directional rule too.
+
+---
+
 ## ⭐ Limits — two different jobs wearing one word
 
 **The list** — both players rate every act on a five-word scale, **sequentially and
@@ -229,9 +263,9 @@ seen, for a third person, or for **pain as a category**. Four families were adde
 | `pain` | impact, biting, clamps — an umbrella over `impact` + `marking` |
 | `toy_vibe` | vibrator or wand |
 | `toy_insert` | an insertable toy (vaginal) |
-| `toy_clamp` | clamps |
+| `toy_squeeze` | squeeze — clamps, bands, grip |
 | `costume` | dressing up — yours, theirs, or what they pick |
-| `undress` | being undressed, or undressing for them |
+| `undress` | undressing in front of your partner, or being undressed by them |
 | `oral_give` | giving oral |
 | `oral_receive` | receiving oral |
 | `anal_give` | anal — giving |
@@ -417,13 +451,14 @@ Then re-run `check.sh`.
 
 ## Open
 
-- **30 limit acts.** Four veto nothing: `risky`, `waking`, `degrade`, and `cuck` — no card
-  in the corpus touches them, so those ratings record a position and filter nothing. That
-  is deliberate for `cuck` (a third person as an **involved** act stays excluded). The
-  veto is auditable: `L.verify(CARDS)` prints the match count per act. **Six acts
-  previously vetoed nothing including `impact` and `photo`, which is why punishment and
-  camera cards could land on someone who had hard-no'd them — fixed in 1.3.5.**
-  **`undress` was missing entirely until 1.3.6, so the strip mechanic had no veto at all.**
+- **30 limit acts.** Every one now has content somewhere — the audit reports **no act with
+  nothing anywhere**. `cuck` is the only one whose gate can remove nothing, because a third
+  person as an **involved** act stays excluded from the games: its two Menu cards record a
+  position and gate a theme that has no cards to remove. That is deliberate, not an
+  oversight. Auditable: `L.verify(CARDS)` prints the match count per act.
+- **History of holes this closed:** six acts vetoed nothing in 1.3.5 (including `impact`
+  and `photo`); `undress` did not exist at all until 1.3.6, so the strip mechanic had no
+  veto; `degrade` and `cuck` had no card of any kind until 1.3.8.
 - **Limit matching is regex over card text**, not an explicit tag. A reworded card can
   silently stop matching. Explicit per-card tags would be sturdier; the regex is the
   reason a card can be added that no veto covers, so run `verify()` when you add one.

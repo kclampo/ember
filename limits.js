@@ -54,10 +54,10 @@ export const LIMIT_ITEMS = [
   { id: 'orders',    label: 'Being told what to do',                test: /instruction|what you are told|what to wear|what to do for an evening|plain words/i },
   { id: 'incharge',  label: 'Being the one in charge',              test: /in charge|take charge|decides everything|decide what comes off|how the next hour|left to decide everything/i },
   { id: 'marking',   label: 'Being marked or bitten',               test: /until it marks|where only the two of you would know|bite down|bitten|suck on the soft/i },
-  { id: 'risky',     label: 'Somewhere you could be caught',        test: /caught|being heard|keep quiet|outdoors/i },
+  { id: 'risky',     label: 'Somewhere you could be caught',        test: /caught|being heard|keep quiet|outdoors|walk in/i },
   { id: 'dirtytalk', label: 'Dirty talk / being told in words',     test: /whisper|say out loud|out loud|says that you|say in the moment|exactly where|exactly what you are going to do/i },
   { id: 'heldrule',  label: 'Being held to one instruction',        test: /one instruction|stays on until/i },
-  { id: 'waking',    label: 'Being woken up for it',                test: /woken up|properly awake/i },
+  { id: 'waking',    label: 'Being woken up for it',                test: /woken up|wake them|awake enough|properly awake/i },
   { id: 'performing',label: 'Being made to perform or show',        test: /take your time with yourself|undressing for someone|top half|show your partner|show off|plays with themselves|touch yourself/i },
   /* ⭐ TOYS ARE TYPES, NOT ONE THING (2026-10-28: "expand toys to include
      different types of toys"). One `toys` row meant a hard no on clamps also
@@ -68,7 +68,11 @@ export const LIMIT_ITEMS = [
      stop, not a preference, so it is not offered as a ratable option. */
   { id: 'toy_vibe',  label: 'Vibrator or wand',                     test: /vibrator|\bwand\b/i },
   { id: 'toy_insert',label: 'An insertable toy',                    test: /insertable|\bdildo\b|toy inside/i },
-  { id: 'toy_clamp', label: 'Clamps',                               test: /clamp/i },
+  /* ⚠️ 'squeeze' not 'clamp' (2026-10-28: "change clamp to squeeze"). A clamp is
+     one implement; what someone objects to is the SQUEEZE — clamps, bands, grip,
+     a hand closing. Naming it after the object makes the limit narrower than the
+     thing people actually mean. */
+  { id: 'toy_squeeze', label: 'Squeeze — clamps, bands, grip',      test: /clamp|squeeze|band|grip/i },
   /* ⭐ COSTUMES / DRESS-UP (2026-10-28: "there is no roleplay or costumes involved,
      like having her put on one of my dress shirts, or me put on a tank top and
      boxer briefs"). This is CLOTHING, and clothing is concrete — put it on, look,
@@ -85,12 +89,17 @@ export const LIMIT_ITEMS = [
      say so, and every stripping dare would still have been dealt to them.
      ⚠️ \bdress them\b vs "undress them": the word boundary matters. Put a bare
      "dress them" in `costume` and it swallows every undressing card too. */
-  { id: 'undress',   label: 'Being undressed, or undressing for them', test: /take one item off|remove one item|one item each|undress|one item off|take two items|what comes off|remove something of theirs|reach inside their clothes|inside their|undo their trousers|undo one button|open their shirt|remove one item of/i },
+  /* ⚠️ Named from HIS wording (2026-10-28: "undress should be undress before your
+     partner"). The test still catches being-undressed cards too — deliberate
+     over-coverage, because "I will not undress in front of you" and "I will not
+     be undressed by you" are close enough that splitting them would offer a
+     choice nobody would answer differently. */
+  { id: 'undress',   label: 'Undressing in front of your partner, or being undressed by them', test: /take one item off|remove one item|one item each|undress|one item off|take two items|what comes off|remove something of theirs|reach inside their clothes|inside their|undo their trousers|undo one button|open their shirt|remove one item of|strip/i },
   /* ⭐ 'punish' / 'belt' / 'paddle' are in the test because the punishment card
      asks what WITH, and without them the card was unvetoeable. */
   { id: 'impact',    label: 'Spanking or impact',                   test: /spank|paddle|whip|flog|\bbelt\b|punish|\bimpact\b/i },
-  { id: 'rope',      label: 'Rope or being tied',                   test: /rope|\btied\b|\bbound\b|\bbind\b|their hands above/i },
-  { id: 'degrade',   label: 'Degradation or name-calling',          test: /degrad|humiliat|name-call/i },
+  { id: 'rope',      label: 'Rope, being tied, or a toy used to hold you', test: /rope|\btied\b|\bbound\b|\bbind\b|their hands above/i },
+  { id: 'degrade',   label: 'Degradation or name-calling',          test: /degrad|humiliat|name-call|what they are|what you are/i },
   { id: 'photo',     label: 'Being photographed or filmed',         test: /photo|film|camera|recorded|posted/i },
   /* ⭐ THE KINK FAMILIES (v1.3.5). The table was 18 narrow ACTS with no umbrella
      for the three things people actually ask about, so a hard no had nothing to
