@@ -44,24 +44,45 @@ export const isVisible = sum => sum > HIDE_AT_OR_BELOW;
  * act has no card yet, and the veto is inert until it does.
  */
 export const LIMIT_ITEMS = [
-  { id: 'restraint', label: 'Being held down or restrained',        test: /held down|restrained|your wrists|their wrists|hands above|hold their wrists/i },
+  { id: 'restraint', label: 'Being held down or restrained',        test: /held down|restrained|hold them still|your wrists|their wrists|hands above|hold their wrists/i },
   { id: 'blindfold', label: 'Being blindfolded',                    test: /blindfold/i },
-  { id: 'denial',    label: 'Being denied or made to wait',         test: /denied|made to wait|told no|waiting for it/i },
-  { id: 'teasing',   label: 'Being teased for a long time',         test: /teased|hours with nothing|take far longer/i },
-  { id: 'watched',   label: 'Being watched',                        test: /being watched|watched the entire|watching your partner|let them look|watch you do it/i },
+  /* ⭐ 'made to come' belongs with denial — both are orgasm control, and a
+     forced orgasm was previously unvetoeable because no word in it matched. */
+  { id: 'denial',    label: 'Being denied, made to wait, or made to come', test: /denied|made to wait|make them wait|wait a full minute|told no|waiting for it|forced orgasm|made to come|whether or not you were ready|edge and stop|do not let them finish/i },
+  { id: 'teasing',   label: 'Being teased for a long time',         test: /teased|hours with nothing|take far longer|stop at the waistband|do not go further/i },
+  { id: 'watched',   label: 'Being watched',                        test: /being watched|watched the entire|watching your partner|watch as your partner|let them look|watch you do it|while they watch|let them watch/i },
   { id: 'orders',    label: 'Being told what to do',                test: /instruction|what you are told|what to wear|what to do for an evening|plain words/i },
-  { id: 'incharge',  label: 'Being the one in charge',              test: /in charge|take charge|decides everything|left to decide everything/i },
+  { id: 'incharge',  label: 'Being the one in charge',              test: /in charge|take charge|decides everything|decide what comes off|left to decide everything/i },
   { id: 'marking',   label: 'Being marked or bitten',               test: /until it marks|where only the two of you would know|bite down|bitten|suck on the soft/i },
   { id: 'risky',     label: 'Somewhere you could be caught',        test: /caught|being heard|keep quiet|outdoors/i },
-  { id: 'dirtytalk', label: 'Dirty talk / being told in words',     test: /whisper|say out loud|says that you|say in the moment|exactly where/i },
+  { id: 'dirtytalk', label: 'Dirty talk / being told in words',     test: /whisper|say out loud|out loud|says that you|say in the moment|exactly where|exactly what you are going to do/i },
   { id: 'heldrule',  label: 'Being held to one instruction',        test: /one instruction|stays on until/i },
   { id: 'waking',    label: 'Being woken up for it',                test: /woken up|properly awake/i },
-  { id: 'performing',label: 'Being made to perform or show',        test: /take your time with yourself|undressing for someone|top half/i },
+  { id: 'performing',label: 'Being made to perform or show',        test: /take your time with yourself|undressing for someone|top half|show your partner|show off|plays with themselves|touch yourself/i },
   { id: 'toys',      label: 'Toys',                                 test: /toy|vibrator/i },
-  { id: 'impact',    label: 'Spanking or impact',                   test: /spank|paddle|whip|flog|\bimpact\b/i },
+  /* ⭐ 'punish' / 'belt' / 'paddle' are in the test because the punishment card
+     asks what WITH, and without them the card was unvetoeable. */
+  { id: 'impact',    label: 'Spanking or impact',                   test: /spank|paddle|whip|flog|\bbelt\b|punish|\bimpact\b/i },
   { id: 'rope',      label: 'Rope or being tied',                   test: /rope|\btied\b|\bbound\b/i },
   { id: 'degrade',   label: 'Degradation or name-calling',          test: /degrad|humiliat|name-call/i },
-  { id: 'photo',     label: 'Being photographed or filmed',         test: /photo|film|camera/i },
+  { id: 'photo',     label: 'Being photographed or filmed',         test: /photo|film|camera|recorded|posted/i },
+  /* ⭐ THE KINK FAMILIES (v1.3.5). The table was 18 narrow ACTS with no umbrella
+     for the three things people actually ask about, so a hard no had nothing to
+     attach to. "Being watched" existed; "watching" did not. Nothing existed at
+     all for being seen, for a third person, or for pain as a category.
+     ⚠️ Overlap is deliberate — a veto on `pain` removes impact AND marking cards.
+     Vetoes UNION, so over-matching fails SAFE. */
+  { id: 'voyeur',    label: 'Watching — them, or watching others',  test: /watch as your partner|watching your partner|watch as you|watch you do it|let them watch|while they watch|watch me|watch them/i },
+  { id: 'exhib',     label: 'Being seen — shown off, watched by others, filmed', test: /someone watch|watch us|in front of someone|someone else present|others present|posting a film|online|show your partner|show off|recorded|filmed/i },
+  /* ⛔ NO CARDS. The corpus excludes a third person as an involved act, so this
+     rating records a position and vetoes nothing — there is nothing to veto.
+     It is here because "is that a hard no for you" is worth knowing even when
+     the deck will never ask it. */
+  /* ⚠️ Narrow ON PURPOSE. A loose /someone else/ matched "told what to do in
+     front of someone else", which is exhibitionism, not cuckolding. A veto that
+     mislabels what it removes teaches the wrong lesson about your own limits. */
+  { id: 'cuck',      label: 'Your partner with someone else',       test: /your partner with someone|watch them with someone|someone else in bed with|another person involved/i },
+  { id: 'pain',      label: 'Pain — impact, biting, clamps',        test: /spank|paddle|whip|flog|\bbelt\b|punish|bite|clamp|hurt|\bimpact\b/i },
 ];
 
 const RULE = LIMIT_ITEMS.reduce((a, r) => (a[r.id] = r, a), {});

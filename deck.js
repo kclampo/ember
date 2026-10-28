@@ -1,7 +1,7 @@
 /*
  * Ember — deck.js  (v1.3.0 corpus)
  *
- * FOUR DECKS, TWO TABS. 249 cards.
+ * FOUR DECKS, TWO TABS. 286 cards.
  *
  *   tab 'questions' → connection        (persists forever, has a reset button)
  *   tab 'games'     → menu · truthdare · kindling   (12-hour session, resets)
@@ -36,6 +36,14 @@
  *    Mouth goes on the BODY: neck, ears, throat, collarbone, chest, stomach,
  *    wrists, fingers. Never mouth-on-genitals. These outrank every card.
  *
+ * ⚠️ THIRD PERSON — the distinction (2026-10-28). A third person as an INVOLVED
+ *    act is still excluded and always will be. Being SEEN is different: tier 4
+ *    asks whether you would let someone watch, or post a film. Those are
+ *    QUESTIONS about a want, not acts performed on anyone, and every one of them
+ *    is covered by a Limits veto (`exhib` · `voyeur` · `cuck`) so a hard no
+ *    removes it before it is dealt. A question you can refuse to be asked is not
+ *    the same thing as an act done to you.
+ *
  * ⛔ NO NAMES IN THIS FILE. The repo is public. Names are typed on the device.
  */
 
@@ -61,8 +69,13 @@ export const DECKS = [
 export const TIERS = {
   connection: { 1: 'Notice',   2: 'Consider', 3: 'Admit'  },
   menu:       { 1: 'Familiar', 2: 'Specific', 3: 'Edge'   },
-  truthdare:  { 1: 'Warming',  2: 'Heated',   3: 'Edge'   },
-  kindling:   { 1: 'Spark',    2: 'Flame',    3: 'Blaze'  },
+  /* ⭐ FOUR LEVELS ON THE GAMES (2026-10-28: "If you have to split blaze into 2
+     to handle all the questions then so be it"). Blaze/Edge was doing two jobs —
+     "hot" and "am I even allowed to want this" — and one bucket cannot hold both
+     without the middle of it going soft. Tier 4 is the part that needs a beat
+     before you answer. */
+  truthdare:  { 1: 'Warming',  2: 'Heated',   3: 'Edge',    4: 'Inferno' },
+  kindling:   { 1: 'Spark',    2: 'Flame',    3: 'Blaze',   4: 'Inferno' },
 };
 
 /* ⭐ 'Hard no' GATES, 'Not for me' DOES NOT (2026-10-28).
@@ -262,20 +275,40 @@ const TRUTHS = [
   { t:2, q:'What do you want me to do to you that would make you lose the ability to speak?' },
   { t:2, q:'What is a sound you want to hear from me, and at what moment?' },
 
-  /* Edge — rounds 12+
-     ⭐ DOWNRIGHT DEVIANT by the top of the ladder. Still inside the standing
-     exclusions: no oral–genital contact, no anal, no third person, mouth on the
-     body only. Deviant is not the same as those four things. */
-  { t:3, q:'What is the thing you want that you have decided you are not allowed to want?' },
-  { t:3, q:'What would you let me do to you if I did not ask first?' },
+  /* Edge — rounds 12–17.
+     ⭐ HIS LIST (2026-10-28). The register is "hot and sayable" — you can answer
+     this one out loud without needing a minute first. The ones that need the
+     minute are in Inferno. */
+  { t:3, q:'What is a sexual act you want to discuss and then do?' },
+  { t:3, q:'What is an act you wish I would surprise you with?' },
+  { t:3, q:'Would you ever want to watch as your partner plays with themselves?' },
+  { t:3, q:'Would you want to show your partner your orgasm — deliberately, while they watch?' },
+  { t:3, q:'If you were to be punished, what with — a hand, a belt, a paddle, something else?' },
+  { t:3, q:'Would you ever want a forced orgasm — made to come whether or not you were ready?' },
   { t:3, q:'What do you want denied to you — and for how long?' },
   { t:3, q:'What is the most exposed you would let me leave you, and for how long?' },
-  { t:3, q:'What do you want me to take from you, and how far does it go?' },
-  { t:3, q:'What is a line you have thought about crossing, and what would make you cross it?' },
   { t:3, q:'What do you want me to do to you with my hands while you are not allowed to move?' },
   { t:3, q:'What do you want me to tell you to do that would make you obey without thinking?' },
   { t:3, q:'What is one thing you want that you would be ashamed to say in daylight?' },
-  { t:3, q:'If I gave you an hour and one rule, what is the rule you would keep?' },
+  { t:3, q:'What is a line you have thought about crossing, and what would make you cross it?' },
+
+  /* Inferno — rounds 18+.
+     ⭐ THE TOP (2026-10-28). Three of these involve other people SEEING, which the
+     corpus otherwise never requires. They are QUESTIONS, not acts — the standing
+     exclusion on a third person as an INVOLVED act still stands, and every card
+     here is covered by a Limits veto (`voyeur` · `exhib` · `cuck`) so a hard no
+     removes it before it is ever dealt. A question you can refuse to be asked is
+     not the same as an act performed on you. */
+  { t:4, q:'What is one sexual act you want that you feel you are not allowed to want?' },
+  { t:4, q:'Would you let someone watch us have sex?' },
+  { t:4, q:'If faces were never shown, would you consider posting a film online?' },
+  { t:4, q:'Would you want to be told what to do in front of someone else, or only when it is just us?' },
+  { t:4, q:'What would you let me do to you if I did not ask first?' },
+  { t:4, q:'If there were no consequences and nobody would ever know, what would you ask me for?' },
+  { t:4, q:'What is something you want done to you that you would not want to explain afterwards?' },
+  { t:4, q:'What do you want me to take from you, and how far does it go?' },
+  { t:4, q:'If I gave you an hour and one rule, what is the rule you would keep?' },
+  { t:4, q:'What is the one thing you have never said out loud that you would say now?' },
 ];
 
 /* Every dare carries `layer` when clothing comes off, so the engine can keep
@@ -320,11 +353,27 @@ const DARES = [
   { t:3, q:'Hand over the next five minutes. You do what you are told.', as:'sub', secs:300 },
   { t:3, q:'Remove one item, or tell them what you want done to you. One or the other.',     layer:{ who:'self', n:1 } },
   { t:3, q:'What is on now stays on until they say otherwise.' },
+
+  /* ---- Inferno (2026-10-28) ----
+     ⚠️ A dare that strips without a `layer` breaks the balance invariant — the
+     engine can no longer keep the two of you level, and one of you ends up naked
+     while the other is dressed. Every stripping dare here carries one. */
+  { t:4, q:'Take them to the edge and stop. Three times. Then wait.' },
+  { t:4, q:'Tell them what is coming, then make them wait a full minute. Do not touch them until it is up.', secs:60 },
+  { t:4, q:'Blindfold them, then use your hands and nothing else for three minutes. They say nothing.', secs:180 },
+  { t:4, q:'Spank them once — hand, belt, or something else. They do not see it coming.' },
+  { t:4, q:'Put their hands above their head and use only your mouth for two minutes.', secs:120 },
+  { t:4, q:'Make them watch as you touch yourself. They do not look away and they do not touch.' },
+  { t:4, q:'Take charge for ten minutes and give one instruction every minute.', as:'dom', secs:600 },
+  { t:4, q:'One instruction: do not move. Hold it for two minutes and one item of yours comes off.', layer:{ who:'self', n:1 }, secs:120 },
+  { t:4, q:'Tell them to say out loud what they want, then give it to them.' },
+  { t:4, q:'Decide what comes off them, and in what order. They do not choose.', layer:{ who:'partner', n:1 } },
 ];
 
-/* ═══════════════════════════════════════════════════ 4 · KINDLING (75)
+/* ═══════════════════════════════════════════════════ 4 · KINDLING (86)
  * Kissing, touching, erotic play. HIM / HER draw. Absorbs the old SYP, Strip and
- * Do It To Your Partner decks. Tiers are spiciness: Spark / Flame / Blaze.
+ * Do It To Your Partner decks. Tiers are spiciness: Spark / Flame / Blaze /
+ * Inferno — and they are EXACT, so moving up leaves the level below behind.
  * ═══════════════════════════════════════════════════════════════════════════ */
 const KINDLING = [
   /* ---- Spark: clothing on, or barely disturbed ---- */
@@ -416,6 +465,18 @@ const KINDLING = [
   { t:3, q:'What is on now stays on until they say otherwise.',              as:'sub' },
   { t:3, q:'Be told what comes off next, and in what order.',                 as:'sub' },
   { t:3, q:'Choose what comes off them, and in what order.',                  as:'dom' },
+
+  /* ---- Inferno (2026-10-28) ---- */
+  { t:4, q:'Kiss down their stomach and stop at the waistband. Do not go further.' },
+  { t:4, q:'Put their hands above their head and use only your mouth for two minutes.', secs:120 },
+  { t:4, q:'Blindfold them and spend three minutes on their chest and stomach. Nowhere else.', secs:180 },
+  { t:4, q:'Take them to the edge and stop. Then start again. Do not let them finish.' },
+  { t:4, q:'Spank them once, with whatever you choose. They do not see it coming.' },
+  { t:4, q:'Sit them down, take off what you choose, and let them watch without touching.' },
+  { t:4, q:'Tell them exactly what you are going to do, then do only the first thing.' },
+  { t:4, q:'Take charge for five minutes. Every instruction is a single word.', secs:300 },
+  { t:4, q:'Make them ask for it out loud before you do anything.' },
+  { t:4, q:'Hold them still and use only your mouth until they tell you to stop.', secs:180 },
 ];
 
 /* ═══════════════════════════════════════════════════════════ ASSEMBLY ═══ */
@@ -483,9 +544,10 @@ export const LEGACY_IDS = Object.fromEntries(
   CARDS.map((c, i) => [`${c.deck}-${String(i + 1).padStart(3, '0')}`, c.id])
 );
 
-/** Round → tier for deck 3. Rounds 1–5 warming, 6–11 heated, 12+ edge. */
+/** Round → tier for deck 3. Rounds 1–5 warming, 6–11 heated, 12–17 edge, 18+ inferno. */
 export function stageForRound(round) {
   if (round <= 5) return 1;
   if (round <= 11) return 2;
-  return 3;
+  if (round <= 17) return 3;
+  return 4;
 }

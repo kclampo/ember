@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.4 · **254 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.5 · **286 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -49,8 +49,8 @@ spent.
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
 | **The Menu** | Questions | 66 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 64 | rounds 1–5 / 6–11 / 12+ |
-| **Kindling** | Games | 76 | Spark → Flame → Blaze |
+| **Truth or Dare** | Games | 86 | rounds 1–5 / 6–11 / 12–17 / 18+ |
+| **Kindling** | Games | 86 | Spark → Flame → Blaze → Inferno |
 
 ### Tier labels are per-deck
 
@@ -58,7 +58,12 @@ There is no global "heat" scale. Connection escalates on **how hard the honest a
 is** — labeling *"what do you need from me that you've never said out loud"* as
 "Hottest" would put it on the same axis as "blindfolded", which is a different axis
 and sets the wrong expectation. Truth or Dare has **no picker at all**: rounds 1–5 are
-Warming, 6–11 Heated, 12+ Edge, shown as a status line.
+Warming, 6–11 Heated, 12–17 Edge, 18+ Inferno, shown as a status line.
+
+**⭐ Why four game levels, not three.** Blaze/Edge was doing two jobs — "hot" and *"am I
+even allowed to want this"* — and one bucket cannot hold both without the middle of it
+going soft. The split keeps the hot-and-sayable register at level 3 and gives the
+questions that need a beat before you answer their own level.
 
 ### What lives where
 
@@ -202,13 +207,38 @@ Hard No + Not really (3) combination all fall below the line. The result is **tw
 columns with each of your names as the header.** Reset button wipes both.
 
 **The veto** — a Hard No is *not* the bottom of a preference scale. It is absolute.
-A Hard No removes every matching card from all three games and **cannot be outvoted**.
+A Hard No removes every matching card from **both game decks** and **cannot be outvoted**.
 So `Hard No + Yes now = 6` is *shown on the list* — you see the clash — but the card
 is never dealt. That is the point: you learn what you each want, and nothing lands on
 a hard limit at round eleven.
 
 **Vetoes apply to actions, not questions.** The Connection deck is conversation and is
 never filtered.
+
+### ⭐ The four families (v1.3.5)
+
+The table was 18 narrow **acts** with no umbrella for the three things people actually ask
+about. `Being watched` existed; **`watching`** did not. Nothing existed at all for being
+seen, for a third person, or for **pain as a category**. Four families were added:
+
+| Act | What it covers |
+|---|---|
+| `voyeur` | watching them, or watching anything |
+| `exhib` | being seen — shown off, watched by someone else, filmed, posted |
+| `cuck` | your partner with someone else — **no cards exist and none will** |
+| `pain` | impact, biting, clamps — an umbrella over `impact` + `marking` |
+
+**Overlap is deliberate.** A Hard No on `pain` removes the spanking cards *and* the biting
+ones. Vetoes **union**, so over-matching fails **safe**.
+
+> ⛔ **The bug this fixed.** Six of the eighteen acts matched **zero** cards, including
+> `impact` and `photo`. Adding punishment or camera content would have dealt it to someone
+> who had hard-no'd exactly that, because the veto had nothing to match on. Every
+> punishment, forced-orgasm, voyeur and exhibition card now has a working Hard No.
+
+**The cost, stated plainly:** the list is 22 acts, so the rating round is 22 questions per
+person, not 18. Five of them (`toys`, `risky`, `waking`, `degrade`, `cuck`) filter nothing
+today — they record a position.
 
 ---
 
@@ -332,10 +362,15 @@ Then re-run `check.sh`.
 
 ## Open
 
-- **18 limit acts, 4 with no card yet** (toys, impact, degradation, photo). The veto is
-  inert for those until cards exist.
-- **Limit matching is regex over card text**, not an explicit tag. It is auditable —
-  `L.verify(CARDS)` prints the match count per act — but a reworded card can silently
-  stop matching. Explicit tags on cards would be sturdier.
+- **22 limit acts.** Five veto nothing: `toys`, `risky`, `waking`, `degrade`, and `cuck` —
+  no card in the corpus touches them, so those ratings record a position and filter
+  nothing. That is honest for `cuck` (a third person as an **involved** act stays
+  excluded) and a genuine gap for the other four. The veto is auditable:
+  `L.verify(CARDS)` prints the match count per act. **Six acts previously vetoed nothing
+  including `impact` and `photo`, which is why punishment and camera cards could land on
+  someone who had hard-no'd them — fixed in 1.3.5.**
+- **Limit matching is regex over card text**, not an explicit tag. A reworded card can
+  silently stop matching. Explicit per-card tags would be sturdier; the regex is the
+  reason a card can be added that no veto covers, so run `verify()` when you add one.
 - **No sync.** One phone passed back and forth. "Blind" means *they didn't look*, which
   is trust, not cryptography.

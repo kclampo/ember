@@ -370,7 +370,11 @@ function buildTierSeg() {
   wrap.hidden = false;
   $('tierLabel').textContent = d === 'connection' ? 'Level' : 'Level';
   const labels = TIERS[d];
-  for (let i = 1; i <= 3; i++) {
+  /* ⭐ DERIVED, NOT HARD-CODED (2026-10-28). This loop said `i <= 3`, so adding a
+     fourth game level would have rendered three buttons and silently made the
+     top tier unreachable. The picker now follows the TIERS table. */
+  const levels = Object.keys(labels).map(Number).sort((a, b) => a - b);
+  for (const i of levels) {
     const b = document.createElement('button');
     b.className = 'segbtn' + (i === state.qtier ? ' on' : '');
     b.dataset.tier = String(i);
