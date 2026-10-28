@@ -57,6 +57,28 @@ echo "  version.json = $vj"
 echo "== service worker cache name =="
 grep -nE "^const CACHE" sw.js | sed 's/^/  /'
 
+echo "== no private words in tracked files =="
+# ⛔ This repo is public and every file is served from the live site. This gate
+# exists because the names were removed once (v1.2.1) and then REINTRODUCED by
+# my own code comments in v1.3.0 — a fix without a test is a fix that regresses.
+# Words live in .privatewords, which is git-ignored, so the guard never commits
+# the thing it is guarding against.
+if [ -f .privatewords ]; then
+  privfail=0
+  while IFS= read -r w; do
+    [ -z "$w" ] && continue
+    hits=$(grep -rniI --exclude-dir=.git --exclude=.privatewords --exclude-dir=node_modules -- "$w" . 2>/dev/null)
+    if [ -n "$hits" ]; then
+      echo "  FAIL private word '$w' found:"
+      printf '%s\n' "$hits" | sed 's/^/       /'
+      privfail=1
+    fi
+  done < .privatewords
+  [ "$privfail" -eq 0 ] && echo "  OK   none" || fail=1
+else
+  echo "  SKIP no .privatewords file"
+fi
+
 echo
 [ "$fail" -eq 0 ] && echo "PASS — safe to push" || echo "FAIL — do not push"
 exit "$fail"

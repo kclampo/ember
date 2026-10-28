@@ -111,7 +111,7 @@ function gameCards() {
   });
 }
 
-/* ⭐ THE MENU GATES THE GAMES (Kevin, 2026-10-28: "it is more about us and
+/* ⭐ THE MENU GATES THE GAMES (2026-10-28: "it is more about us and
    should be locked in questions that affect the other games").
    A Menu card carries a `gate` — a limit-act id. If EITHER of you answers
    "Not for me" on it, that whole theme stops being dealt in Truth or Dare and
@@ -382,7 +382,7 @@ function renderCard(card, person, opts = {}) {
     if (anch) sW.appendChild(anch);
   }
   $('passBtn').hidden = false;
-  /* ⭐ THREE BUTTONS ON THE QUESTIONS TAB (Kevin, 2026-10-28). Pass throws the
+  /* ⭐ THREE BUTTONS ON THE QUESTIONS TAB (2026-10-28). Pass throws the
      question back in the deck, Next consumes it and deals another, Done
      consumes it and stops. The games keep two — a game card you skip is a
      card you spent. */
