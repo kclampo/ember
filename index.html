@@ -32,13 +32,9 @@
     <select id="deckSel" class="sel"></select>
     <p id="deckBlurb" class="blurb"></p>
 
-    <div id="tdWrap" class="sub" hidden>
-      <label class="lbl">Round type</label>
-      <div class="seg" id="tdSeg">
-        <button class="segbtn on" data-td="mix">Mix</button>
-        <button class="segbtn" data-td="truth">Truth</button>
-        <button class="segbtn" data-td="dare">Dare</button>
-      </div>
+    <div id="subWrap" class="sub" hidden>
+      <label class="lbl" id="subLabel">Round type</label>
+      <div class="seg" id="subSeg"></div>
     </div>
 
     <label class="lbl">Heat</label>
@@ -67,7 +63,9 @@
       <span id="cardTier" class="tierTag"></span>
     </div>
 
+    <p id="cardPitch" class="pitch" hidden></p>
     <p id="cardQ" class="q"></p>
+    <p id="cardPartner" class="partner" hidden></p>
 
     <div id="cardOpts" class="opts" hidden></div>
     <div id="cardScale" class="scale" hidden></div>

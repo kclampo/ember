@@ -2,7 +2,7 @@
 
 A deck for two. Five games, three heat tiers, on-device only.
 
-**Repo:** `ember-deck` · **Product name:** Ember · **Version:** 1.0.0
+**Product name:** Ember · **Version:** 1.1.0 · **170 cards**
 
 ---
 
@@ -15,57 +15,99 @@ glances at a phone asks what "Ember" is. That is a feature.
 
 ## The five games
 
-| Deck | What it is | Answer shape |
+| Deck | What it is | Cards |
 |---|---|---|
-| **Connection — What I Notice** | Say the true thing you have not said | Mixed |
-| **Connection — If You Couldn't Get Caught** | Fantasy, as a choice rather than a confession | Mostly `would` |
-| **Truth or Dare** | Truth, dare, or mix | Mixed |
-| **Do It To Your Partner** | A thing to do, not a thing to say | Instructions |
-| **Strip** | Comply or forfeit | Instructions |
+| **Connection — What I Notice** | Say the true thing you have not said | 38 |
+| **Connection — If You Couldn't Get Caught** | Fantasy, one question, four answers | 26 |
+| **Truth or Dare** | Truth, dare, or mix | 32 |
+| **Do It To Your Partner** | A thing to do, not a thing to say | 28 |
+| **SYP or Strip** | Two round types, chosen per round | 46 |
 
 ---
 
-## The design decision that matters
+## SYP and Strip — two round types of one game
 
-**A blank "describe your fantasy" box is a dead end.**
+They are presented as **a paired choice**, like truth-or-dare. You pick which
+one you are playing this round.
 
-Most couples card decks write free-answer prompts. That works for a talker and
-fails completely for a partner who does not volunteer — who then faces a blank
-and reads their own silence as a verdict on themselves.
+**SYP — "take a drink of your partner."**
+Physical contact with the mouth and hands. *Kiss their neck and do not move on
+for ten seconds. Take their earlobe between your lips. Run your tongue along
+their collarbone. Take their fingers into your mouth. Put your hand inside
+their trousers and leave it there.*
+23 cards, tiers rising from one kiss to a held instruction.
 
-So every card carries an **answer type**:
+> ⛔ **Mouth on the BODY only** — ears, throat, neck, collarbone, chest,
+> stomach, wrists, fingers. **Never mouth-on-genitals.** That is a standing
+> limit, not a preference, and it is what keeps the deck usable rather than a
+> thing that gets skipped.
+
+**Strip — passionate and prelude. Not literal undressing.**
+*Run your fingers through their hair and hold their head there. Kiss their
+chest over the clothing. Trace one finger from throat to waistband. Undo their
+trousers and do nothing else. Let them look as long as they want.*
+Clothing is one tool among several, not the mechanic.
+23 cards.
+
+---
+
+## ⭐ Answer types — and `pitch`, which makes them work
 
 | Type | What the partner gets |
 |---|---|
-| `open` | Answer out loud. No input box, no scoring |
+| `open` | Answer out loud. No input box |
 | `pick` | Choose one from a short list |
 | `thisor` | A or B |
 | `scale` | 1–5 |
-| `would` | **I would / Maybe / Not for me / My partner would** |
+| `would` | **Yes / Maybe / Not for me / Ask me again later** |
 
-`would` is the important one. It converts a confession into a **selection** —
-and selection is answerable when invention is not.
+**Why `would` exists:** a blank "describe your fantasy" box is a dead end for a
+partner who does not volunteer. A choice is answerable; invention is not.
 
-> "I would" meeting "My partner would" is not a mismatch. It is one person
-> wanting to give and the other wanting to receive.
+**⭐ Every `would` card carries a `pitch` — the question line.**
+Rendered small and orange above the card text:
 
-**Balance rule, enforced in `deck.js`:** in the question decks (`admire`,
-`fantasy`, truths) `open` must stay at or below ~45%. It currently sits at
-**36%** (30 of 84). Task decks (`doit`, dares, `strip`) are `open` by nature —
+> **WOULD YOU WANT THIS?**
+> Being told no, and made to wait for it.
+> *( Yes · Maybe · Not for me · Ask me again later )*
+
+> ⚠️ **Why this is mandatory:** the first build shipped these cards as bare
+> sentence fragments with no question attached. Kevin could not tell how they
+> worked. *A card you have to have explained is not a card.* All 15 `would`
+> cards now carry a pitch, and the test suite asserts the pitch renders.
+
+**Balance rule:** in the question decks (`admire`, `fantasy`, truths) `open`
+stays at or below ~45%. **Currently 31%.** Task decks are `open` by nature —
 the instruction *is* the content.
+
+---
+
+## ⭐ The overlap mechanic
+
+`seen` is tracked **per person**. A card answered by one partner stays live for
+the other — and when the second person draws it, the app shows what the first
+one said:
+
+> **DENISE**
+> **WOULD YOU WANT THIS?**
+> Being told no, and made to wait for it.
+> 💗 *Kevin already answered this: Maybe*
+
+**This is the payoff.** Individually the answers are just answers; the reason to
+play is the comparison. A card is only fully spent once both people have seen
+it.
 
 ---
 
 ## ⛔ Excluded, permanently
 
-These are **standing limits, not preferences.** No card in this repo contains
-any of them, and none may be added:
+**Standing limits, not preferences.** No card contains any of them and none may
+be added:
 
-- **anal** — any act, either direction
-- **oral** — any act, either direction
+- **oral–genital contact**, any direction — including inside the SYP deck
+- **anal**, any act
 - **a third person** as a required act
-- **anything requiring her to invent a scenario from nothing** — the
-  `would`/`pick` types exist precisely so this never has to happen
+- **anything requiring her to invent a scenario from nothing**
 
 If a future card needs a limit list, the limit wins and the card is cut.
 
@@ -73,14 +115,13 @@ If a future card needs a limit list, the limit wins and the card is cut.
 
 ## Rules the app enforces
 
-1. **PASS costs nothing and needs no reason.** There is no score, no loser, no
-   tally. Nothing is stored about who passed.
-2. **Heat is a ceiling, not a target.** Pressing *Hot* includes Warm and Hot.
-   Nothing above the selected tier can appear.
-3. **A card is scoped to a person or to both.** `for:'him'` cards can never be
-   drawn by HER and vice versa — verified in test, 0 leaks.
-4. **Cards do not repeat** until the deck is spent, then the app says so and
-   offers a reset.
+1. **PASS costs nothing and needs no reason.** No score, no tally, nothing
+   recorded about who passed.
+2. **Heat is a ceiling, not a target.** *Hot* includes Warm and Hot. Nothing
+   above the chosen tier can appear.
+3. **Person-scoped cards never leak.** `for:'him'` cannot be drawn by HER and
+   vice versa — verified, 0 leaks across the full sweep.
+4. **Cards do not repeat for the same person** until the deck is spent.
 
 ---
 
@@ -88,9 +129,9 @@ If a future card needs a limit list, the limit wins and the card is cut.
 
 | Tier | Label | What lives there |
 |---|---|---|
-| 1 | **Warm** | Notices, compliments, hands, first impressions |
-| 2 | **Hot** | Body, wanting, undressing, deliberate touch |
-| 3 | **Hottest** | Being told, control, blindfolds, restraint, waiting |
+| 1 | **Warm** | Notices, compliments, first kisses, hands, hair |
+| 2 | **Hot** | Body, wanting, undressing, deliberate touch, hands inside clothing |
+| 3 | **Hottest** | Being told, control, blindfolds, held wrists, waiting |
 
 ---
 
@@ -104,8 +145,8 @@ python3 -m http.server 8791
 # open http://127.0.0.1:8791/
 ```
 
-**State lives in `localStorage` only** — the seen-list, last deck, heat, and
-truth/dare filter. Nothing leaves the device. There is no server to leak.
+State lives in `localStorage` only — seen-lists, answers, last deck, heat,
+round type. Nothing leaves the device.
 
 ---
 
@@ -115,53 +156,43 @@ truth/dare filter. Nothing leaves the device. There is no server to leak.
 bash check.sh
 ```
 
-`check.sh` validates every `.js` file **as ESM** (`cp f /tmp/x.mjs && node --check`)
-and scans for glued punctuation.
+Validates every `.js` **as ESM** and scans for glued punctuation.
 
 > ⚠️ **Why it exists:** on 2026-10-27 a patch ate a newline in a sibling project,
 > gluing a comment rule onto a closing brace. The module failed to parse, no
-> event listeners attached, and the app's start button looked dead.
-> `node --check app.js` returned **exit 0** on that broken file, because the
-> `import` makes Node bail as CommonJS before it reaches the syntax error.
-> Every earlier "SYNTAX OK" came from a check that could not see the bug.
+> event listeners attached, and the start button looked dead. `node --check
+> app.js` returned **exit 0** on that broken file, because the `import` makes
+> Node bail as CommonJS before reaching the syntax error.
 
-**⛔ Never push without a green `check.sh`.**
+It also **verifies `version.js` matches `version.json`** — it caught a live
+mismatch on 2026-10-27 during this build.
 
 ### Deploy checklist
 
 1. `bash check.sh` → must print `PASS`
-2. Bump `CACHE` in `sw.js` on **every** deploy — a cache-first service worker
-   with an unchanged cache name serves the old app forever
-3. Bump `version.js` **and** `version.json` together (`check.sh` verifies match)
-4. Push, wait ~30 s, then grep the **live** URL — not the local file
+2. Bump `CACHE` in `sw.js` on **every** deploy
+3. Bump `version.js` **and** `version.json` together
+4. Push, wait ~30 s, grep the **live** URL — not the local file
 
 ---
 
 ## Adding cards
 
-Append to the relevant array in `deck.js`:
-
 ```js
-{ t:2, a:'would', q:'Your prompt here.' }
+{ t:2, a:'would', pitch:'Would you want this?', q:'Your prompt here.' }
 { t:3, a:'pick', q:'Your prompt here.', opts:['A','B','C'] }
 { t:2, a:'open', q:'Your prompt here.', for:'her' }
 ```
 
-Then re-run `check.sh` and re-check the question-deck open percentage.
-
-**⚠️ Adding `open` cards dilutes the answer-type balance. Prefer `would`,
-`pick`, or `thisor`.**
+Re-run `check.sh` and re-check the question-deck open percentage.
+**⚠️ Prefer `would` / `pick` / `thisor` over `open`.**
 
 ---
 
 ## Open questions
 
-- **"SYP"** — Kevin mentioned a game called *syp or strip*. Strip is built.
-  **SYP is unidentified** — if it is a real game he wants modelled, it needs a
-  description before it can be built. *Do not guess at what it stands for.*
-- Card count is **142**. Comfortable for months at a few rounds a night, but it
-  is a first corpus, not a finished one.
-
----
-
-*Built 2026-10-27.*
+- **Card count 170.** Comfortable, but still a first corpus.
+- **No way to add your own cards yet** — every custom card means editing
+  `deck.js`. A "write your own" screen is the obvious next feature.
+- **Two devices would need a sync layer.** Today it is one phone passed back
+  and forth, which is what the overlap mechanic assumes.

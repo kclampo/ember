@@ -145,6 +145,23 @@ body {
   margin: 0 0 6px; letter-spacing: -.005em;
 }
 
+/* the question line — makes a `would` card a question, not a riddle */
+.pitch {
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--hot2);
+}
+
+/* what the other partner already answered on this same card */
+.partner {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border-left: 3px solid var(--her);
+  background: rgba(198,90,138,.10);
+  border-radius: 0 8px 8px 0;
+  font-size: 13.5px; line-height: 1.4; color: var(--ink);
+}
+
 /* answer controls */
 .opts { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
 .opt {
