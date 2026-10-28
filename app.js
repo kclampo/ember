@@ -18,7 +18,7 @@
 
 import { CARDS, DECKS, TIERS, TABS, WOULD_OPTS, NOISH, LEGACY_IDS, stageForRound } from './deck.js';
 import { APP_VERSION } from './version.js';
-import { match, close, bothMaybe, scaleMatch, scaleClose } from './audio.js';
+import { match, close, bothMaybe, scaleMatch, scaleClose, ding } from './audio.js';
 import * as L from './limits.js';
 
 const $ = id => document.getElementById(id);
@@ -86,8 +86,9 @@ function nameOf(p) {
 function roleOf(p) { return state.roles[p] || 'switch'; }
 
 /* ══════════════════════════════════════════════════ view plumbing */
-const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'emptyView'];
+const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'stageView', 'emptyView'];
 function show(which) {
+  stopTimer();          // a timer must never outlive the card that started it
   for (const v of VIEWS) $(v).hidden = (v !== which);
 }
 
@@ -100,6 +101,7 @@ function freshSession(deck) {
     holder: 'him',
     layers: { him: 4, her: 4 },
     seen: { him: [], her: [] },
+    done: 0,              // ⭐ activities completed this session — drives the ten-and-ask prompt
     menu: null,           // { ids, ratings:{him,her}, stage:'rate'|'handoff'|'reveal', who, idx }
     card: null, person: null, revealed: false,
   };
@@ -122,6 +124,7 @@ function persistSession() { if (state.session) save(LS.session, state.session); 
 
 /* ══════════════════════════════════════════════════ veto filter */
 let BLOCKED = new Set();
+let timerH = null;          // the card timer's interval handle — exactly one may exist
 
 /* ⛔ A VETO APPLIES TO ACTIONS, NOT TO QUESTIONS. The Connection deck is
    conversation — a hard no on "being watched" must not delete "what's a thing
@@ -205,8 +208,21 @@ function migrateStoredIds() {
 const deckById = id => DECKS.find(d => d.id === id);
 
 function tierPool(deckId, tier) {
+  const d = deckById(deckId);
+  /* ⭐ EXACT TIER ON THE GAMES DECKS (2026-10-28: "as I move from spark to flame
+     to blaze the card count increases. does this mean if I am at blaze I will
+     get spark level questions? ... the q pools should be limited to the area").
+     Yes — it did. The old test was `c.tier <= tier`, so Blaze dealt Spark and
+     Flame cards and the ladder never actually got hotter; it just got longer,
+     and the odds of a cold card went UP the further you climbed.
+     ⚠️ Connection and The Menu stay cumulative on purpose: their tiers are
+     levels of HONESTY, not temperature, and a deep question is not spoiled by
+     having a shallower one available. */
+  const exact = d && d.tab === 'games';
   return CARDS.filter(c =>
-    c.deck === deckId && c.tier <= tier && !BLOCKED.has(c.id)
+    c.deck === deckId &&
+    (exact ? c.tier === tier : c.tier <= tier) &&
+    !BLOCKED.has(c.id)
   );
 }
 
@@ -341,6 +357,10 @@ function buildTierSeg() {
     $('ttdStatus').hidden = false;
     const s = getSession('truthdare');
     const t = stageForRound(s.round);
+    /* ⭐ WHOSE TURN IT IS (2026-10-28: "the screen needs to indicate who is up to
+       decide who's turn it is to press a button"). In this deck the holder is the
+       one who chooses Truth or Dare AND answers, so it is said first and plainly. */
+    $('tdTurn').textContent = `${nameOf(s.holder)} is up — choose Truth or Dare`;
     $('ttdLine').textContent = `Round ${s.round} · ${TIERS.truthdare[t]}`;
     $('ttdLayers').textContent =
       `${nameOf('him')} ${s.layers.him} on · ${nameOf('her')} ${s.layers.her} on`;
@@ -357,7 +377,9 @@ function buildTierSeg() {
     b.textContent = labels[i];
     seg.appendChild(b);
   }
-  $('tierHint').textContent = 'Includes everything below it.';
+  $('tierHint').textContent = (deckById(d) && deckById(d).tab === 'games')
+    ? 'Only this level — moving up leaves the one below behind.'
+    : 'Includes everything below it.';
 }
 
 function paintSetup() {
@@ -465,15 +487,21 @@ function renderCard(card, person, opts = {}) {
     if (anch) sW.appendChild(anch);
   }
   $('passBtn').hidden = false;
-  /* ⭐ THREE BUTTONS ON THE QUESTIONS TAB (2026-10-28). Pass throws the
-     question back in the deck, Next consumes it and deals another, Done
-     consumes it and stops. The games keep two — a game card you skip is a
-     card you spent. */
-  $('nextBtn').hidden = (state.tab !== 'questions');
+  /* ⭐ THE SAME THREE BUTTONS EVERYWHERE (2026-10-28: "the buttons should be the
+     same pass next done").
+       PASS — not spent. The card goes back in the pool and the turn moves on.
+       NEXT — spent. The same person goes again.
+       DONE — spent. The turn passes and you are back at the board. */
+  $('nextBtn').hidden = false;
   $('doneBtn').textContent = 'DONE';
-  $('cardHint').textContent = state.tab === 'questions'
-    ? 'Pass puts it back. Next keeps going. Done ends it.'
-    : 'Pass costs nothing and needs no reason.';
+  $('cardHint').textContent = 'Pass puts it back. Next keeps you going. Done hands it over.';
+
+  /* ⭐ WHO ANSWERS THIS (2026-10-28: "is that for me to answer or the partner?
+     It's ambiguous as to the recipient"). The HIM/HER tag names the turn; this
+     line names the person the question is put to, in a sentence. */
+  $('cardAsked').textContent = opts.asked || `${nameOf(person)} answers`;
+
+  paintTimer(card);
 }
 
 /* 1 and 5 were unlabelled — you could not tell which end was which. Every
@@ -505,7 +533,56 @@ function selectedValue() {
   return on ? on.textContent : undefined;
 }
 
-/* ══════════════════════════════════════════════════ CONNECTION + KINDLING */
+/* ══════════════════════════════════════════════════ the card timer */
+/* ⭐ A TIMED CARD NEEDS A CLOCK (2026-10-28: "for cards that have a time have a
+   timer button that you can press that makes it easy to know when 20 seconds or
+   a minute"). Cards carry `secs`; the button is shown only when they do.
+   ⚠️ The countdown belongs to ONE card. Every view change and every clearCard()
+   kills it, because an interval that survives its card fires a beep minutes
+   later with nothing on screen to explain it. */
+function fmtSecs(s) {
+  /* ⚠️ Built with concatenation, NOT a template literal that closes a
+     substitution against a bare letter — that form trips the glued-punctuation
+     gate in check.sh, which cannot tell a swallowed newline from legitimate
+     code. See the note in check.sh. */
+  return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : s + 's';
+}
+function stopTimer() {
+  if (timerH) { clearInterval(timerH); timerH = null; }
+  /* ⚠️ The interval and the BUTTON STATE are two different things. Clearing only
+     the interval leaves a frozen "running" button on screen when you come back
+     to the card, which reads as a clock that is still going. */
+  const b = document.getElementById('timerBtn');
+  if (b) b.classList.remove('running');
+}
+function paintTimer(card) {
+  stopTimer();
+  if (!card || !card.secs) { $('timerWrap').hidden = true; $('timerText').textContent = ''; return; }
+  $('timerWrap').hidden = false;
+  $('timerBtn').textContent = `Start ${fmtSecs(card.secs)}`;
+  $('timerBtn').classList.remove('running');
+  $('timerText').textContent = '';
+  $('timerText').classList.remove('up');
+}
+$('timerBtn').addEventListener('click', () => {
+  const card = getSession(currentDeck()).card;
+  if (!card || !card.secs) return;
+  stopTimer();
+  let left = card.secs;
+  $('timerText').classList.remove('up');
+  $('timerText').textContent = fmtSecs(left);
+  $('timerBtn').classList.add('running');
+  timerH = setInterval(() => {
+    left -= 1;
+    if (left > 0) { $('timerText').textContent = fmtSecs(left); return; }
+    stopTimer();
+    $('timerBtn').classList.remove('running');
+    $('timerText').textContent = "Time";
+    $('timerText').classList.add('up');
+    ding();
+  }, 1000);
+});
+
 let excludeOnce = new Set();   // just-passed cards, skipped for the NEXT draw only
 
 function drawSimple(person) {
@@ -531,36 +608,112 @@ function drawSimple(person) {
   renderCard(card, person);
 }
 
-function simpleDone() {
+/* ⭐ TEN ACTIVITIES, THEN ASK (2026-10-28: "After doing 10 activities in
+   kindling, it should ask if we want to move up a notch or stay where we are for
+   another 10"). Tiers are exact now, so without this prompt you would climb by
+   guesswork and could sit at Spark all night. */
+const KINDLING_BLOCK = 10;
+
+function kindlingTick() {
+  if (currentDeck() !== 'kindling') return false;
+  const s = getSession('kindling');
+  s.done = (s.done || 0) + 1;
+  persistSession();
+  if (s.done % KINDLING_BLOCK !== 0) return false;
+  paintStagePrompt();
+  return true;
+}
+
+function paintStagePrompt() {
+  const s = getSession('kindling');
+  const t = state.qtier;
+  const labels = TIERS.kindling;
+  $('stageMsg').textContent =
+    `${s.done} done. Stay at ${labels[t]} for another ${KINDLING_BLOCK}, or move up?`;
+  if (t < 3) {
+    $('stageUpBtn').hidden = false;
+    $('stageUpBtn').textContent = `MOVE UP TO ${labels[t + 1].toUpperCase()}`;
+    $('stageSub').textContent =
+      `Moving up means the next ${KINDLING_BLOCK} are all ${labels[t + 1]} — nothing below it comes back.`;
+  } else {
+    $('stageUpBtn').hidden = true;
+    $('stageSub').textContent = 'This is the top level. Staying means another ten at Blaze.';
+  }
+  show('stageView');
+}
+
+$('stageStayBtn').addEventListener('click', () => { show('setup'); paintSetup(); });
+$('stageUpBtn').addEventListener('click', () => {
+  state.qtier = Math.min(3, state.qtier + 1);
+  save(LS.qtier, state.qtier);
+  show('setup'); paintSetup();
+});
+
+/* DONE — the card is spent and the turn passes back to the board. */
+function gameDone() {
   const d = currentDeck();
+  if (d === 'truthdare') { tdFinish({ advance: true }); return; }
+  if (state.tab === 'questions') { nextSimple(); return; }
+
   const s = getSession(d);
   if (!s.card) return;
-  if (s.revealed) { nextSimple(); return; }
 
-  /* Connection and Kindling are both 100% `open` — the answer is spoken, so
-     there is nothing to store and nothing to compare. No verdict, no sound.
-     The only reveal available is that the other person already had this card. */
-  const other = OTHER(s.person);
-  let partnerText = null;
-  if (d === 'kindling' && (s.seen[other] || []).includes(s.card.id)) {
-    partnerText = `${nameOf(other)} drew this one too.`;
+  /* a kindling card the other person already drew gets one reveal, then BACK */
+  if (!s.revealed) {
+    const other = OTHER(s.person);
+    if ((s.seen[other] || []).includes(s.card.id)) {
+      const box = $('cardPartner');
+      box.replaceChildren();
+      const row = document.createElement('div');
+      row.className = 'prow';
+      row.textContent = `${nameOf(other)} drew this one too.`;
+      box.append(row);
+      box.hidden = false;
+      s.revealed = true;
+      $('passBtn').hidden = true;
+      $('nextBtn').hidden = true;
+      $('doneBtn').textContent = 'BACK';
+      $('cardOpts').hidden = true;
+      $('cardScale').hidden = true;
+      stopTimer();
+      persistSession();
+      return;
+    }
   }
 
-  if (!partnerText) { nextSimple(); return; }
+  consumeCard();
+  clearCard();
+  if (kindlingTick()) return;
+  show('setup');
+  paintSetup();
+}
 
-  const box = $('cardPartner');
-  box.replaceChildren();
-  const row = document.createElement('div');
-  row.className = 'prow';
-  row.textContent = partnerText;
-  box.append(row);
-  box.hidden = false;
-  s.revealed = true;
-  $('passBtn').hidden = true;
-  $('doneBtn').textContent = 'NEXT';
-  $('cardOpts').hidden = true;
-  $('cardScale').hidden = true;
-  persistSession();
+/* NEXT — the card is spent and the SAME person goes again. */
+function gameNext() {
+  const d = currentDeck();
+  if (d === 'truthdare') { tdFinish({ advance: false }); return; }
+  if (state.tab === 'questions') { nextQuestion(); return; }
+
+  const s = getSession(d);
+  const person = s.person;
+  consumeCard();
+  clearCard();
+  if (kindlingTick()) return;
+  if (person) drawSimple(person);
+  else { show('setup'); paintSetup(); }
+}
+
+/* PASS — the card is NOT spent. It goes back in the pool and the turn moves on. */
+function gamePass() {
+  const d = currentDeck();
+  if (d === 'truthdare') { tdFinish({ advance: true, keep: true }); return; }
+  if (state.tab === 'questions') { passQuestion(); return; }
+
+  const s = getSession(d);
+  if (s.card) excludeOnce.add(s.card.id);
+  clearCard();
+  show('setup');
+  paintSetup();
 }
 
 /* ⭐ THREE BUTTONS on the Questions tab.
@@ -639,44 +792,49 @@ function drawTD(kind) {
   const card = pool[Math.floor(Math.random() * pool.length)];
   s.card = card; s.person = s.holder;
   persistSession();
-  renderCard(card, s.holder, { tag: kind.toUpperCase(), tagClass: kind === 'truth' ? 'her' : 'him' });
+  renderCard(card, s.holder, {
+    tag: kind.toUpperCase(),
+    tagClass: kind === 'truth' ? 'her' : 'him',
+    asked: `${nameOf(s.holder)} ${kind === 'truth' ? 'answers' : 'does it'}`,
+  });
   $('cardHint').textContent = kind === 'dare'
-    ? 'Do it, or take the consequence. Passing costs nothing.'
-    : 'Answer honestly, or pass.';
+    ? 'Do it, or pass. Passing costs nothing and the card goes back.'
+    : 'Answer honestly, or pass. Passing costs nothing.';
 }
 
-function tdDone() {
+/* ⭐ ONE EXIT, THREE WAYS OUT (2026-10-28).
+   finish(advance, keep):
+     advance:true,  keep:true   → PASS  — card NOT spent, turn moves on
+     advance:false, keep:false  → NEXT  — card spent, SAME holder goes again
+     advance:true,  keep:false  → DONE  — card spent, turn passes
+   ⚠️ NEXT must not cost the turn, or it would be indistinguishable from DONE and
+   the third button would be decoration. */
+function tdFinish({ advance, keep }) {
   const s = getSession('truthdare');
   if (!s.card) return;
 
-  if (s.card.layer) {
-    const { who, n } = s.card.layer;
-    const me = s.holder, them = OTHER(me);
-    if (who === 'self' || who === 'self-they-choose') s.layers[me] = Math.max(0, s.layers[me] - n);
-    else if (who === 'partner' || who === 'partner-they-choose' || who === 'partner-you-choose') s.layers[them] = Math.max(0, s.layers[them] - n);
-    else if (who === 'both') { s.layers[me] = Math.max(0, s.layers[me] - 1); s.layers[them] = Math.max(0, s.layers[them] - 1); }
+  if (!keep) {
+    if (s.card.layer) {
+      const { who, n } = s.card.layer;
+      const me = s.holder, them = OTHER(me);
+      if (who === 'self' || who === 'self-they-choose') s.layers[me] = Math.max(0, s.layers[me] - n);
+      else if (who === 'partner' || who === 'partner-they-choose' || who === 'partner-you-choose') s.layers[them] = Math.max(0, s.layers[them] - n);
+      else if (who === 'both') { s.layers[me] = Math.max(0, s.layers[me] - 1); s.layers[them] = Math.max(0, s.layers[them] - 1); }
+    }
+    if (!s.seen[s.holder].includes(s.card.id)) s.seen[s.holder].push(s.card.id);
   }
-  if (!s.seen[s.holder].includes(s.card.id)) s.seen[s.holder].push(s.card.id);
+
   s.round += 1;
-  s.holder = OTHER(s.holder);
+  if (advance) s.holder = OTHER(s.holder);
   s.card = null; s.person = null; s.revealed = false;
   persistSession();
   show('setup');
   paintSetup();
 }
 
-function tdPass() {
-  const s = getSession('truthdare');
-  if (s.card) {
-    if (!s.seen[s.holder].includes(s.card.id)) s.seen[s.holder].push(s.card.id);
-  }
-  s.round += 1;
-  s.holder = OTHER(s.holder);
-  s.card = null; s.person = null;
-  persistSession();
-  show('setup');
-  paintSetup();
-}
+/* kept as thin aliases so no older call site can silently do nothing */
+function tdDone() { tdFinish({ advance: true }); }
+function tdPass() { tdFinish({ advance: true, keep: true }); }
 
 /* ══════════════════════════════════════════════════ THE MENU (blind round) */
 const MENU_N = 10;
@@ -992,21 +1150,13 @@ $('resultDone').addEventListener('click', finishMenuRound);
 $('limitsBtn').addEventListener('click', openLimits);
 $('limitsClose').addEventListener('click', () => { show('setup'); paintSetup(); });
 
-$('doneBtn').addEventListener('click', () => {
-  const d = currentDeck();
-  if (d === 'truthdare') { tdDone(); return; }
-  if (state.tab === 'questions') { nextSimple(); return; }  // Done = consume and stop
-  simpleDone();                                            // games: kindling reveal path
-});
-$('nextBtn').addEventListener('click', () => {
-  if (state.tab === 'questions') nextQuestion();
-});
-$('passBtn').addEventListener('click', () => {
-  const d = currentDeck();
-  if (d === 'truthdare') { tdPass(); return; }
-  if (state.tab === 'questions') { passQuestion(); return; }
-  nextSimple();
-});
+/* ⭐ ONE WIRING FOR BOTH TABS (2026-10-28: "the buttons should be the same pass
+   next done"). Each handler dispatches on the deck and on the tab; there is no
+   second button set to drift out of sync. Older versions hid NEXT on the games
+   tab, which is exactly how the two tabs ended up behaving differently. */
+$('doneBtn').addEventListener('click', gameDone);
+$('nextBtn').addEventListener('click', gameNext);
+$('passBtn').addEventListener('click', gamePass);
 
 $('newGameBtn').addEventListener('click', () => {
   state.session = freshSession(currentDeck());
@@ -1050,4 +1200,4 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf };
+export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck };

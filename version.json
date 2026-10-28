@@ -1,4 +1,4 @@
 {
-  "version": "1.3.3",
-  "notes": "Three fixes. (1) Only 'Hard no' removes a theme from the games — 'Not for me' is the soft refusal and now changes nothing, and 'Hard no' is a new fifth answer. (2) The 'who leads' card is scored as a compatibility PAIR, so 'I lead' + 'they follow' is a match and 'we both want to lead' is the failure state. (3) Card ids are content-derived instead of positional, so a version push can no longer renumber stored answers, and an interrupted Limits round survives a refresh."
+  "version": "1.3.4",
+  "notes": "Games. (1) PASS / NEXT / DONE on both tabs, with one wiring. (2) Game tiers are now EXACT: Blaze no longer deals Spark cards — the old test was 'tier <= N', so the ladder got longer instead of hotter. (3) Truth or Dare says whose turn it is, and NEXT keeps your turn while DONE hands it over. (4) Timed cards get a countdown button. (5) Every card names who it is put to. (6) The warming truths were twenty-year-old memory prompts and are now this week; the top tier is genuinely deviant. (7) Cards saying 'one of you' now say who. (8) Kindling asks every ten activities whether to move up a level or stay."
 }

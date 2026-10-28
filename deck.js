@@ -231,55 +231,65 @@ const MENU = [
  *   rounds 1–5 → tier 1 · 6–11 → tier 2 · 12+ → tier 3
  * ═══════════════════════════════════════════════════════════════════════════ */
 const TRUTHS = [
-  /* Warming */
-  { t:1, q:'What is the first thing you noticed about me?' },
-  { t:1, q:'What is a small thing I do that turns you on?' },
-  { t:1, q:'When did you last think about me during the day — and where were you?' },
-  { t:1, q:'What do I do that you wish I did more of?' },
-  { t:1, q:'What is a compliment you want from me that you have never asked for?' },
-  { t:1, q:'Which is harder for you to say — what you want, or what you do not want?' },
-  { t:1, q:'What is something about my body you have never told me you noticed?' },
-  { t:1, q:'When do you find me most attractive — doing what, exactly?' },
-  { t:1, q:'What is a thing I wear that does something to you?' },
-  { t:1, q:'What did you think the first time you saw me undressed?' },
+  /* Warming — rounds 1–5.
+     ⭐ RECENT, NOT NOSTALGIC (2026-10-28: "the warming were also Q's from way
+     back, they need to be about more recent and a bit hotter for the first
+     round"). Every card here points at this WEEK or TONIGHT. "What did you
+     think the first time you saw me undressed" is a memory test, not a turn-on.
+     ⚠️ Also written to be ANSWERABLE WITHOUT INVENTING: several are forced
+     choices against two concrete things, because "tell me a fantasy" returns
+     nothing from someone who does not build scenarios unprompted. */
+  { t:1, q:'What did you think about me this week that you did not say out loud?' },
+  { t:1, q:'When did you want me this week and not act on it — and what stopped you?' },
+  { t:1, q:'What did I do in the last few days that you are still thinking about?' },
+  { t:1, q:'Which gets you there faster — my mouth on your neck, or my hands on your hips? Say which, and why.' },
+  { t:1, q:'What is the last thing I said to you that stayed with you after you left the room?' },
+  { t:1, q:'When I walked past you recently, where were you looking?' },
+  { t:1, q:'What do you want me to do the moment we are alone tonight?' },
+  { t:1, q:'What have you thought about doing to me this week — and where were you when you thought it?' },
+  { t:1, q:'What is one thing I could do tonight that would make you stop pretending to be tired?' },
+  { t:1, q:'What is the most recent thing I did that you replayed afterwards?' },
 
-  /* Heated */
-  { t:2, q:'What is something you want me to do without asking first?' },
-  { t:2, q:'What is a thing you would want me to say in the moment that I have never said?' },
-  { t:2, q:'What do you want more of, honestly?' },
-  { t:2, q:'What is a place you have thought about us doing it?' },
-  { t:2, q:'What pace do you actually prefer — and do I do it?' },
-  { t:2, q:'Have you ever pretended to be more tired than you were? What was the real reason?' },
-  { t:2, q:'What is one thing I have done once that you want repeated?' },
-  { t:2, q:'What do you think about when you are alone that you do not think about with me?' },
-  { t:2, q:'Which is better for you — giving up control, or taking it?' },
-  { t:2, q:'What is the last thing I did that you thought about afterwards?' },
+  /* Heated — rounds 6–11 */
+  { t:2, q:'What is the most turned on I have made you in the last month — what was I doing?' },
+  { t:2, q:'Where do you want my mouth next, and what should I do when I get there?' },
+  { t:2, q:'What do you want me to do to you that I have never done?' },
+  { t:2, q:'Do you want me rougher, slower, or more deliberate — and be specific about what that looks like.' },
+  { t:2, q:'What is one thing you want me to take off you, and how fast?' },
+  { t:2, q:'When did you last touch yourself thinking about me, and what were you thinking about?' },
+  { t:2, q:'What do you want me to say to you while I am moving inside you?' },
+  { t:2, q:'What is something you want done to you that you have never asked for out loud?' },
+  { t:2, q:'What do you want me to do to you that would make you lose the ability to speak?' },
+  { t:2, q:'What is a sound you want to hear from me, and at what moment?' },
 
-  /* Edge */
-  { t:3, q:'What is something you would want once, that you would not want to make a habit?' },
-  { t:3, q:'What is a thing you have never told me you want?' },
-  { t:3, q:'What is a sexual thing you might be ready for one day, but are not yet?' },
-  { t:3, q:'Honest — have you ever told me everything you want?' },
-  { t:3, q:'What is the last thing you thought about me and decided not to say?' },
-  { t:3, q:'What is something you would want me to do that you would be embarrassed to ask for?' },
-  { t:3, q:'Is there anything we have done that you would not do again? What, and why?' },
-  { t:3, q:'What is a line you have thought about crossing, and what stopped you?' },
-  { t:3, q:'What do you want said to you that you would never say to me first?' },
-  { t:3, q:'If you could change one thing about how we do this, what would it be?' },
+  /* Edge — rounds 12+
+     ⭐ DOWNRIGHT DEVIANT by the top of the ladder. Still inside the standing
+     exclusions: no oral–genital contact, no anal, no third person, mouth on the
+     body only. Deviant is not the same as those four things. */
+  { t:3, q:'What is the thing you want that you have decided you are not allowed to want?' },
+  { t:3, q:'What would you let me do to you if I did not ask first?' },
+  { t:3, q:'What do you want denied to you — and for how long?' },
+  { t:3, q:'What is the most exposed you would let me leave you, and for how long?' },
+  { t:3, q:'What do you want me to take from you, and how far does it go?' },
+  { t:3, q:'What is a line you have thought about crossing, and what would make you cross it?' },
+  { t:3, q:'What do you want me to do to you with my hands while you are not allowed to move?' },
+  { t:3, q:'What do you want me to tell you to do that would make you obey without thinking?' },
+  { t:3, q:'What is one thing you want that you would be ashamed to say in daylight?' },
+  { t:3, q:'If I gave you an hour and one rule, what is the rule you would keep?' },
 ];
 
 /* Every dare carries `layer` when clothing comes off, so the engine can keep
    both players even. `who` is written from the HOLDER's point of view. */
 const DARES = [
   /* Warming */
-  { t:1, q:'Kiss your partner for thirty seconds without using your hands.' },
+  { t:1, q:'Kiss your partner for thirty seconds without using your hands.', secs:30 },
   { t:1, q:'Say out loud one thing you want, in plain words.' },
   { t:1, q:'Give your partner one sincere compliment about their body. Specific, not general.' },
-  { t:1, q:'Hold eye contact with your partner for twenty seconds without speaking.' },
+  { t:1, q:'Hold eye contact with your partner for twenty seconds without speaking.', secs:20 },
   { t:1, q:'Kiss your partner somewhere that is not their mouth. One kiss. You pick.' },
   { t:1, q:'Trace one line from their neck to their hand with one finger. Then stop.' },
   { t:1, q:'Tell your partner the first thing you noticed about them tonight.' },
-  { t:1, q:'Hold their face in both hands and kiss them slowly for fifteen seconds.' },
+  { t:1, q:'Hold their face in both hands and kiss them slowly for fifteen seconds.', secs:15 },
   { t:1, q:'Take one item off. Your partner chooses which.',  layer:{ who:'self-they-choose', n:1 } },
   { t:1, q:'Take one item off your partner. They do not get to pick which.', layer:{ who:'partner', n:1 } },
   { t:1, q:'Describe your partner in three words. No repeats from last round.' },
@@ -304,10 +314,10 @@ const DARES = [
   { t:3, q:'Take two items off your partner. They do not pick either one.',                  layer:{ who:'partner', n:2 } },
   { t:3, q:'One each, and you each choose for the other.',                                   layer:{ who:'both', n:1 } },
   { t:3, q:'Take one item off — and they decide where you are kissed next.',                 layer:{ who:'self', n:1 } },
-  { t:3, q:'Hold their wrists and use only your mouth for two minutes.' },
+  { t:3, q:'Hold their wrists and use only your mouth for two minutes.', secs:120 },
   { t:3, q:'Tell them to do the thing you want, in plain words. Once.' },
-  { t:3, q:'Take charge for five minutes. They do what you say.', as:'dom' },
-  { t:3, q:'Hand over the next five minutes. You do what you are told.', as:'sub' },
+  { t:3, q:'Take charge for five minutes. They do what you say.', as:'dom', secs:300 },
+  { t:3, q:'Hand over the next five minutes. You do what you are told.', as:'sub', secs:300 },
   { t:3, q:'Remove one item, or tell them what you want done to you. One or the other.',     layer:{ who:'self', n:1 } },
   { t:3, q:'What is on now stays on until they say otherwise.' },
 ];
@@ -319,27 +329,32 @@ const DARES = [
 const KINDLING = [
   /* ---- Spark: clothing on, or barely disturbed ---- */
   { t:1, q:'Kiss your partner\'s neck once. Then walk away.' },
-  { t:1, q:'Kiss your partner\'s neck and do not move on for at least ten seconds.' },
+  { t:1, q:'Kiss your partner\'s neck and do not move on for at least ten seconds.', secs:10 },
   { t:1, q:'Take their earlobe between your lips, hold it, then let go.' },
   { t:1, q:'Kiss the inside of their wrist. Then turn their hand over and kiss the palm.' },
   { t:1, q:'Run your tongue once along their collarbone. Once.' },
   { t:1, q:'Kiss them behind the ear. Say nothing about it afterwards.' },
-  { t:1, q:'Hold their face in both hands and kiss them slowly for fifteen seconds.' },
+  { t:1, q:'Hold their face in both hands and kiss them slowly for fifteen seconds.', secs:15 },
   { t:1, q:'Take their bottom lip gently between your teeth and pull back.' },
   { t:1, q:'Kiss the back of their neck and let them feel you breathe there.' },
   { t:1, q:'Run your fingers through their hair and hold their head there.' },
   { t:1, q:'Kiss their chest once, over the clothing.' },
   { t:1, q:'Take their hand and put it flat on your own chest.' },
   { t:1, q:'Trace one finger slowly from their throat down to their waistband.' },
-  { t:1, q:'Pull them in by the waist and hold for thirty seconds without speaking.' },
+  { t:1, q:'Pull them in by the waist and hold for thirty seconds without speaking.', secs:30 },
   { t:1, q:'Kiss them once for every year you have been together.' },
-  { t:1, q:'Look at them for ten seconds without saying anything. Do not explain why.' },
-  { t:1, q:'Take their hand and hold it. Say nothing for a full minute.' },
+  { t:1, q:'Look at them for ten seconds without saying anything. Do not explain why.', secs:10 },
+  { t:1, q:'Take their hand and hold it. Say nothing for a full minute.', secs:60 },
   { t:1, q:'Tell them one thing about their body you love. Specific about where or what.' },
   { t:1, q:'Tell them one thing you want them to take off. Just say it.' },
   { t:1, q:'Kiss them once, properly, then tell them why.' },
   { t:1, q:'Take their hand and put it somewhere you want it. Say nothing.' },
-  { t:1, q:'Both close your eyes. One of you touch the other once, then stop.', as:'any' },
+  /* ⭐ THE CARD MUST SAY WHO (2026-10-28: "both close eyes and one of you touch
+     the other. Card needs to designate who."). "One of you" is not a card — it
+     is a negotiation with no owner, and both people wait for the other. The
+     holder is now the toucher, explicitly. */
+  { t:1, q:'Both close your eyes. You reach out and touch them once, then stop.', secs:20 },
+  { t:1, q:'Both close your eyes and wait. They will touch you once, then stop.', secs:20 },
   { t:1, q:'Be kissed wherever your partner decides. Then do not react.',      as:'sub' },
   { t:1, q:'Have your partner put your hand where they want it.',              as:'sub' },
   { t:1, q:'Give one instruction about where to be touched, and be obeyed.',  as:'dom' },
@@ -378,21 +393,25 @@ const KINDLING = [
   { t:3, q:'Put your hand inside their trousers and leave it there. Say nothing at all.' },
   { t:3, q:'Kiss, bite and suck your way from their throat to their waistband. Then stop dead.' },
   { t:3, q:'Tell them exactly where you are going to put your mouth next. Then do it.' },
-  { t:3, q:'Hold their wrists and use only your mouth for two minutes.' },
+  { t:3, q:'Hold their wrists and use only your mouth for two minutes.', secs:120 },
   { t:3, q:'Take off everything on your top half and let them look as long as they like.' },
   { t:3, q:'Take off one item for every instruction they give you.' },
   { t:3, q:'Give them one instruction about what to remove. You cannot take it back.' },
   { t:3, q:'Both remove one item. You each decide what the other loses.',   as:'any' },
   { t:3, q:'Remove one item — and they decide where you are kissed next.' },
   { t:3, q:'Give them one instruction and wait as long as it takes.' },
-  { t:3, q:'Blindfold them with something soft, then do nothing at all for thirty seconds.' },
+  { t:3, q:'Blindfold them with something soft, then do nothing at all for thirty seconds.', secs:30 },
   { t:3, q:'Tell them no, once — then make them wait for it.' },
   { t:3, q:'Tell them to do the thing you want, in plain words. Once.' },
-  { t:3, q:'Take charge for five minutes. They do what you say.',            as:'dom' },
-  { t:3, q:'Hand over the next five minutes. You do what you are told.',     as:'sub' },
+  { t:3, q:'Take charge for five minutes. They do what you say.',            as:'dom', secs:300 },
+  { t:3, q:'Hand over the next five minutes. You do what you are told.',     as:'sub', secs:300 },
   { t:3, q:'Put their hand where you want it, and tell them not to move it.', as:'dom' },
   { t:3, q:'Tell them one thing they do that you want more of tonight — and make them do it.' },
-  { t:3, q:'One of you decides how the next hour goes. The other does not negotiate.', as:'any' },
+  /* ⭐ WHO DECIDES (2026-10-28). "One of you decides how the next hour goes" had
+     no owner — two people waiting to see if the other will take it. The holder
+     now decides, and it is a DOM-perspective card so it does not land on someone
+     who will not take it. */
+  { t:3, q:'Decide how the next hour goes. They do not negotiate.',           as:'dom' },
   { t:3, q:'Remove one item, or tell them what you want done to you. One or the other.' },
   { t:3, q:'What is on now stays on until they say otherwise.',              as:'sub' },
   { t:3, q:'Be told what comes off next, and in what order.',                 as:'sub' },
@@ -438,6 +457,7 @@ const mk = (deck, c, extra = {}) => ({
   gate: c.gate || null,
   lo: c.lo || null,
   hi: c.hi || null,
+  secs: c.secs || null,
   pair: c.pair || null,
   map: c.map || null,
   ...extra,

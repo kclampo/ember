@@ -89,3 +89,16 @@ export function scaleClose() {
   note(c, 783.99, 0.09, 0.30, 'sine', 0.11);
   return true;
 }
+
+/* ---- TIMER — a card's duration ran out.
+   ⚠️ NOT a verdict sound. It is a stopwatch, not a judgement, so it must not
+   borrow match()/close()'s harmonic language and teach you that a beep means
+   something good happened. Three flat pulses, audible across a bed. ---- */
+export function ding() {
+  const c = ctxNow(); if (!c) return false;
+  for (let i = 0; i < 3; i++) {
+    note(c, 880.00, i * 0.22, 0.13, 'triangle', 0.22);
+    note(c, 1760.00, i * 0.22, 0.10, 'sine', 0.06);
+  }
+  return true;
+}

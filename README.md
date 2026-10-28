@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.3 · **253 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.4 · **254 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -49,8 +49,8 @@ spent.
 |---|---|---|---|
 | **Connection** | Questions | 48 | Notice → Consider → Admit |
 | **The Menu** | Questions | 66 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 64 | escalates by round |
-| **Kindling** | Games | 75 | Spark → Flame → Blaze |
+| **Truth or Dare** | Games | 64 | rounds 1–5 / 6–11 / 12+ |
+| **Kindling** | Games | 76 | Spark → Flame → Blaze |
 
 ### Tier labels are per-deck
 
@@ -125,6 +125,52 @@ So the card declares a `pair` rule and a `map` from each option to a **position*
 Only `complement` carries the match sound. A clash is silent, because it is information,
 not a win. Any card can opt in by declaring `pair` + `map`; everything else keeps
 ordinary equality scoring.
+
+---
+
+## ⭐ The games
+
+### One button set, both tabs
+
+**PASS · NEXT · DONE**, everywhere.
+
+| Button | The card | Who goes next |
+|---|---|---|
+| **PASS** | **not spent** — it goes back in the pool | turn moves on |
+| **NEXT** | spent | **the same person goes again** |
+| **DONE** | spent | turn passes, back to the board |
+
+`NEXT` and `DONE` are only distinguishable because NEXT does **not** cost the turn.
+If they both handed the turn over the third button would be decoration.
+
+### ⛔ Tiers are EXACT on the games, and were not
+
+`tierPool()` used to test `c.tier <= tier`. On a game deck that means **Blaze dealt
+Spark and Flame cards** — the ladder never got hotter, it only got longer, and the odds
+of a cold card went *up* the higher you climbed. Game decks now deal **only their own
+tier**. Connection and The Menu stay cumulative on purpose: their tiers are levels of
+*honesty*, not temperature, and a deep question is not spoiled by a shallow one existing.
+
+### Truth or Dare says whose turn it is
+
+The board reads **"`<name>` is up — choose Truth or Dare"**, and every card carries a line
+naming who it is put to (`Him answers`, `Her does it`). The `HIM`/`HER` tag names the turn;
+the line names the **recipient** — those are not the same question, which is why
+*"what is a small thing I do that turns you on"* was ambiguous.
+
+### Timed cards have a clock
+
+Cards with a duration carry `secs` and show a **Start 10s / 30s / 1:00 / 5:00** button that
+counts down and gives three flat pulses at zero. The countdown belongs to one card: leaving
+the card kills it. It is a stopwatch, not a verdict, so it deliberately does not borrow the
+match/close harmonics.
+
+### Kindling asks every ten
+
+After **10 completed activities** it stops and asks: *"10 done. Stay at Spark for another
+10, or move up?"* Moving up raises the level and nothing below it comes back. At Blaze there
+is nowhere up, so it offers STAY only. `NEXT` and `DONE` both count; `PASS` does not, because
+a passed card was not an activity.
 
 ---
 

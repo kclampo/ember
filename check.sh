@@ -35,6 +35,11 @@ done
 echo "== glued-brace / glued-bracket scan =="
 # a closing brace or bracket immediately followed by a non-ASCII rule or a
 # letter with no separator => a patch ate a newline
+# ⚠️ KNOWN FALSE POSITIVE: a template literal that closes a substitution against
+#    a bare letter (i.e. text immediately after the closing brace) looks
+#    identical to a swallowed newline. Use concatenation in that case. Do not
+#    weaken this pattern to silence it — the gate exists because a lost newline
+#    broke PosePro silently.
 if grep -nP '[}\]](\x{2500}-\x{257F}|[A-Za-z])' *.js 2>/dev/null; then
   echo "  FAIL glued punctuation found above"
   fail=1

@@ -219,6 +219,39 @@ body {
 .resRow .verdict.talk { color: #d0a05a; }
 .partner .verdict.mismatch { color: #d0a05a; }
 
+/* ---------------------------------------------------------- v1.3.4 games */
+/* who the card is put to, in a sentence — the HIM/HER tag names the turn, not
+   the recipient of a second-person question */
+.asked {
+  margin: -2px 0 10px;
+  font-size: 12.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* a card with a duration gets a clock */
+.timerWrap { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+.timerBtn {
+  font: inherit; font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 10px 18px; border-radius: 999px; cursor: pointer;
+  color: var(--hot2); background: transparent;
+  border: 1px solid rgba(240,132,92,.55);
+}
+.timerBtn.running { color: var(--dim); border-color: rgba(255,255,255,.18); }
+.timerText {
+  font-variant-numeric: tabular-nums; font-size: 26px; letter-spacing: .02em;
+  color: var(--hot2);
+}
+.timerText.up { color: #d0a05a; letter-spacing: .12em; font-size: 20px; }
+
+/* whose turn it is to choose */
+.tdTurn {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--hot2);
+}
+
 /* ---------------------------------------------------------- limits */
 .limitsHead {
   display: flex; justify-content: space-between; align-items: center;

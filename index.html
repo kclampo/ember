@@ -49,6 +49,7 @@
     </div>
 
     <div id="ttdStatus" class="ttdStatus" hidden>
+      <p id="tdTurn" class="tdTurn"></p>
       <p id="ttdLine" class="ttdLine"></p>
       <p id="ttdLayers" class="hint"></p>
     </div>
@@ -106,9 +107,20 @@
       <span id="cardWho" class="whoTag"></span>
       <span id="cardTier" class="tierTag"></span>
     </div>
+    <!-- ⭐ WHO THIS CARD IS ASKED OF. The tag alone said HIM/HER, which does not
+         answer "is this mine to answer or theirs?" when a card is written in the
+         second person. -->
+    <p id="cardAsked" class="asked"></p>
 
     <p id="cardPitch" class="pitch" hidden></p>
     <p id="cardQ" class="q"></p>
+
+    <!-- ⭐ TIMER — only shown when the card carries a duration -->
+    <div id="timerWrap" class="timerWrap" hidden>
+      <button id="timerBtn" class="timerBtn">Start</button>
+      <span id="timerText" class="timerText"></span>
+    </div>
+
     <p id="cardPartner" class="partner" hidden></p>
 
     <div id="cardOpts" class="opts" hidden></div>
@@ -152,6 +164,16 @@
       <button id="limitsClose" class="link">close</button>
     </div>
     <div id="limitsBody"></div>
+  </section>
+
+  <!-- ---------------------------------------------------- STAGE PROMPT -->
+  <section id="stageView" class="panel" hidden>
+    <p class="q" id="stageMsg"></p>
+    <p class="hint" id="stageSub"></p>
+    <div class="cardActions">
+      <button id="stageStayBtn" class="pass">STAY</button>
+      <button id="stageUpBtn" class="next">MOVE UP</button>
+    </div>
   </section>
 
   <!-- ---------------------------------------------------- EMPTY -->
