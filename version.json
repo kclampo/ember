@@ -1,4 +1,4 @@
 {
-  "version": "1.2.1",
-  "notes": "Privacy fix: the two real first names that were hardcoded in app.js, the button labels and the README are gone. Names are now two fields you fill in yourself on the setup screen — anything you like, up to 24 characters — stored only on your device and never committed. Blank uses Him / Her."
+  "version": "1.3.0",
+  "notes": "Two tabs. Questions keep a seen-list forever; Games reset after 12 hours or a New game. Four decks replace five: Connection (Notice/Consider/Admit), The Menu (blind round, then everything opens), Truth or Dare (two buttons, the phone moves, it heats up by round), Kindling (Spark/Flame/Blaze). Name and role (DOM/SUB/SWITCH) for each of you. New Limits screen with a five-word scale, a hidden sequential process, and a Hard No that removes cards from every game."
 }

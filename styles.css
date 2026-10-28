@@ -15,6 +15,12 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* ⛔ `display:flex` on a class BEATS the `hidden` attribute (UA sheet uses
+   display:none at a lower specificity). Every .who / .opts / .scale / .resList
+   block would stay visible while still carrying hidden="". This one rule is the
+   fix, and it must stay above the layout rules. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0; padding: 0;
   background: var(--bg);
@@ -124,6 +130,115 @@ body {
 }
 .nameIn::placeholder { color: var(--dim); opacity: .65; }
 .nameIn:focus { outline: none; border-color: var(--hot); }
+
+.roleSel {
+  flex: 0 0 96px;
+  padding: 12px 8px;
+  background: var(--bg2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 11px;
+  font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  appearance: none; text-align: center;
+}
+.roleSel:focus { outline: none; border-color: var(--hot); }
+
+/* ---------------------------------------------------------- header + tabs */
+.hdr-right { display: flex; align-items: center; gap: 12px; }
+.hdrBtn {
+  background: none; border: 1px solid var(--line); border-radius: 99px;
+  color: var(--dim); font: inherit; font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 6px 12px; cursor: pointer;
+}
+.hdrBtn:active { color: var(--ink); border-color: var(--hot); }
+
+.tabs { display: flex; gap: 8px; margin: 0 0 18px; }
+.tab {
+  flex: 1; padding: 12px 8px;
+  background: transparent; color: var(--dim);
+  border: 0; border-bottom: 2px solid var(--line);
+  font: inherit; font-size: 13px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  transition: .15s;
+}
+.tab.on { color: var(--ink); border-bottom-color: var(--hot); }
+
+/* ---------------------------------------------------------- truth or dare */
+.whoBtn.truth { border-color: rgba(79,143,168,.5); }
+.whoBtn.dare  { border-color: rgba(224,96,58,.5); }
+.whoBtn.truth:active { background: rgba(79,143,168,.14); }
+.whoBtn.dare:active  { background: rgba(224,96,58,.14); }
+
+.ttdStatus {
+  margin-top: 18px; padding: 12px 14px;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+}
+.ttdLine {
+  margin: 0; font-size: 12px; font-weight: 800;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--hot2);
+}
+
+/* ---------------------------------------------------------- menu round */
+.rateTop {
+  margin: 0 0 14px; font-size: 11px; font-weight: 800;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+}
+.rateTop strong { color: var(--ink); }
+
+.resList { margin: 16px 0 20px; display: flex; flex-direction: column; gap: 12px; }
+.resRow {
+  padding: 13px 15px; background: var(--bg2);
+  border: 1px solid var(--line); border-radius: 13px;
+}
+.resRow.match     { border-color: rgba(240,132,92,.55); }
+.resRow.close     { border-color: rgba(198,90,138,.55); }
+.resRow.mismatch  { border-color: rgba(208,160,90,.5); }
+.resQ { margin: 0 0 9px; font: 400 16px/1.35 ui-serif, Georgia, serif; }
+.resRow .prow { display: flex; gap: 9px; align-items: baseline; }
+.resRow .plbl {
+  flex: 0 1 auto; min-width: 52px; max-width: 42%;
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim); overflow-wrap: anywhere;
+}
+.resRow .verdict {
+  margin-top: 9px; padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.resRow .verdict.match { color: var(--hot2); }
+.resRow .verdict.close { color: var(--her); }
+.resRow .verdict.bothMaybe { color: var(--dim); }
+.resRow .verdict.mismatch { color: #d0a05a; }
+.partner .verdict.mismatch { color: #d0a05a; }
+
+/* ---------------------------------------------------------- limits */
+.limitsHead {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.limitsTable {
+  width: 100%; border-collapse: collapse; margin: 16px 0 14px;
+  font-size: 13px;
+}
+.limitsTable th {
+  text-align: left; padding: 8px 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--hot2);
+  border-bottom: 1px solid var(--line); overflow-wrap: anywhere;
+}
+.limitsTable td {
+  padding: 9px 6px; border-bottom: 1px solid rgba(255,255,255,.05);
+  vertical-align: top;
+}
+.limitsTable td:first-child { color: var(--ink); }
+.limitsTable td:not(:first-child) { white-space: nowrap; color: var(--dim); text-align: right; }
+.limitsTable td.sum { font-weight: 800; color: var(--ink); }
+.limitsTable tr.veto td { color: #d0a05a; }
+.vetoTag {
+  display: inline-block; margin-left: 4px; padding: 1px 5px;
+  border: 1px solid currentColor; border-radius: 4px;
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  vertical-align: middle;
+}
 
 .meta {
   display: flex; justify-content: space-between; align-items: center;

@@ -3,13 +3,14 @@
  * ⛔ BUMP CACHE ON EVERY DEPLOY. A cache-first SW with an unchanged name
  * serves the old app forever and the user concludes nothing shipped.
  */
-const CACHE = 'ember-v4';
+const CACHE = 'ember-v5';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './deck.js',
+  './limits.js',
   './audio.js',
   './version.js',
   './manifest.json',

@@ -1,287 +1,201 @@
 # Ember
 
-A deck for two. Five games, three heat tiers, on-device only.
+A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Product name:** Ember · **Version:** 1.2.1 · **170 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.0 · **249 cards** · **repo:** `kclampo/ember`
+**Live:** https://kclampo.github.io/ember/
 
 ---
 
 ## ⛔ Privacy — there are no names in this repository
 
-**This repo is public, and every file in it is fetchable from the live site.** So
-nothing identifying is committed — not in the code, not in the comments, not in this
-README.
+This repo is public and every file is fetchable from the live site, so nothing
+identifying is committed — not in the code, not in the comments, not here.
 
-Names are **typed by the user on their own device** and stored in `localStorage`
-(`ember.names`). Never sent anywhere, never cached into the service worker, never
-committed. Blank falls back to the roles: **Him / Her**. Both fields accept any text
-up to 24 characters — a name, a title, a pet name, whatever the two of you actually
-call each other.
+Names are typed on the device and stored in `localStorage` (`ember.names`). Never
+sent, never cached into the service worker, never committed. Blank falls back to the
+roles: **Him / Her**.
 
-> **⚠️ What v1.2.1 fixed:** v1.2.0 shipped `NAME = { him: …, her: … }` hardcoded in
-> `app.js`, with the same two first names in the button labels, the README, and the
-> code comments — two real people's identities attached to an explicit card deck,
-> publicly readable, for anyone who had the URL or searched GitHub. Every instance is
-> gone.
-
-> **⛔ What this does NOT fix:** the 170 cards are still publicly readable. Removing
-> the names removes the *identities*, not the *content*. If the corpus itself needs to
-> be private, the repo has to be private — and GitHub Pages from a private repo
-> requires a paid GitHub plan, so that is a different host, not a code change. Decide
-> it deliberately.
-
----
-
-## Why it is called Ember
-
-Short, warm, and **deliberately unremarkable on a home screen.** Nobody who
-glances at a phone asks what "Ember" is. That is a feature.
-
----
-
-## The five games
-
-| Deck | What it is | Cards |
-|---|---|---|
-| **Connection — What I Notice** | Say the true thing you have not said | 38 |
-| **Connection — If You Couldn't Get Caught** | Fantasy, one question, four answers | 26 |
-| **Truth or Dare** | Truth, dare, or mix | 32 |
-| **Do It To Your Partner** | A thing to do, not a thing to say | 28 |
-| **SYP or Strip** | Two round types, chosen per round | 46 |
-
----
-
-## SYP and Strip — two round types of one game
-
-They are presented as **a paired choice**, like truth-or-dare. You pick which
-one you are playing this round.
-
-**SYP — "take a drink of your partner."**
-Physical contact with the mouth and hands. *Kiss their neck and do not move on
-for ten seconds. Take their earlobe between your lips. Run your tongue along
-their collarbone. Take their fingers into your mouth. Put your hand inside
-their trousers and leave it there.*
-23 cards, tiers rising from one kiss to a held instruction.
-
-> ⛔ **Mouth on the BODY only** — ears, throat, neck, collarbone, chest,
-> stomach, wrists, fingers. **Never mouth-on-genitals.** That is a standing
-> limit, not a preference, and it is what keeps the deck usable rather than a
-> thing that gets skipped.
-
-**Strip — passionate and prelude. Not literal undressing.**
-*Run your fingers through their hair and hold their head there. Kiss their
-chest over the clothing. Trace one finger from throat to waistband. Undo their
-trousers and do nothing else. Let them look as long as they want.*
-Clothing is one tool among several, not the mechanic.
-23 cards.
-
----
-
-## ⭐ Answer types — and `pitch`, which makes them work
-
-| Type | What the partner gets |
-|---|---|
-| `open` | Answer out loud. No input box |
-| `pick` | Choose one from a short list |
-| `thisor` | A or B |
-| `scale` | 1–5 |
-| `would` | **Yes / Maybe / Not for me / Ask me again later** |
-
-**Why `would` exists:** a blank "describe your fantasy" box is a dead end for a
-partner who does not volunteer. A choice is answerable; invention is not.
-
-**⭐ Every `would` card carries a `pitch` — the question line.**
-Rendered small and orange above the card text:
-
-> **WOULD YOU WANT THIS?**
-> Being told no, and made to wait for it.
-> *( Yes · Maybe · Not for me · Ask me again later )*
-
-> ⚠️ **Why this is mandatory:** the first build shipped these cards as bare
-> sentence fragments with no question attached. The reader could not tell how they
-> worked. *A card you have to have explained is not a card.* All 15 `would`
-> cards now carry a pitch, and the test suite asserts the pitch renders.
-
-**Balance rule:** in the question decks (`admire`, `fantasy`, truths) `open`
-stays at or below ~45%. **Currently 31%.** Task decks are `open` by nature —
-the instruction *is* the content.
-
----
-
-## ⭐ The overlap mechanic — and the reveal gate
-
-`seen` and `answers` are tracked **per person**. A card answered by one partner
-stays live for the other, and **a card one of you has already answered is
-promoted to the front of the other's draw queue.** With 170 cards a purely
-random draw would almost never put both of you on the same card, and the
-comparison — the entire point — would never fire.
-
-> ⛔ **The reveal is gated.** You never see your partner's answer until you have
-> pressed **DONE** on your own answer. Showing her answer at draw time does not
-> reveal a comparison, it manufactures one — you would be answering *into* her
-> answer. (2026-10-27: *"the reveal should only be after we both answer a
-> card."*)
-
-So the flow is:
-
-**HIM** draws → answers → **DONE** → **HER** draws the same card → answers →
-**DONE** → both answers appear side by side.
-
-### The four outcomes
-
-| Outcome | When | Sound |
-|---|---|---|
-| **Match — you both said yes** | `would` · Yes + Yes | bright rising arpeggio |
-| **Close — one yes, one maybe** | `would` · Yes + Maybe | warm, unresolved |
-| **Both said maybe** | `would` · Maybe + Maybe | playful bounce |
-| *silence* | Not for me · Ask me again later · a mismatched `pick` · any `open` card | none |
-
-> **Silence is an answer.** A sound for everything is a sound for nothing.
+> **What v1.2.1 fixed:** v1.2.0 shipped two real first names hardcoded in `app.js`,
+> the button labels and this README. Every instance is gone.
 >
-> `pick` / `thisor` cards that match say **"Same answer"** — never "you both said
-> yes", because nobody did. `scale` cards match on the same number and come
-> close one apart.
+> **⛔ What this does not fix:** the cards themselves are still publicly readable.
+> Removing the names removes the *identities*, not the *content*. Private pages need
+> a private repo, and GitHub Pages from a private repo needs a paid plan.
 
-**`open` cards cannot be compared** — there is no stored answer, the reply is
-spoken aloud. So the second person is told *"*name* drew this one too"* and the
-card passes without sound.
+---
 
-**That is the payoff.** Individually the answers are just answers; the reason to
-play is the comparison. A card is only fully spent once both people have seen
-it.
+## ⭐ Two tabs, and they remember differently
 
-**Sound is synthesised on the device** (`audio.js`) — WebAudio oscillators only.
-No audio files, no network, nothing to download, works offline. iOS/Safari will
-not start an audio context outside a tap, and every sound fires from the DONE
-tap, so that constraint is satisfied by construction.
+| Tab | Decks | Persistence |
+|---|---|---|
+| **Questions** | Connection | seen-list **kept forever** + a Reset button |
+| **Games** | The Menu · Truth or Dare · Kindling | **12-hour session** + a New game button |
+
+A connection question is **spent** the moment it is answered — re-asking it later is a
+replay with a contaminated answer. A game card is **not spent**; it is as good the
+tenth time. One needs memory, the other needs amnesia. Do not unify them.
+
+---
+
+## The four decks
+
+| Deck | Tab | Cards | Tiers |
+|---|---|---|---|
+| **Connection** | Questions | 48 | Notice → Consider → Admit |
+| **The Menu** | Games | 66 | Familiar → Specific → Edge |
+| **Truth or Dare** | Games | 60 | escalates by round |
+| **Kindling** | Games | 75 | Spark → Flame → Blaze |
+
+### Tier labels are per-deck
+
+There is no global "heat" scale. Connection escalates on **how hard the honest answer
+is** — labeling *"what do you need from me that you've never said out loud"* as
+"Hottest" would put it on the same axis as "blindfolded", which is a different axis
+and sets the wrong expectation. Truth or Dare has **no picker at all**: rounds 1–5 are
+Warming, 6–11 Heated, 12+ Edge, shown as a status line.
+
+### What lives where
+
+- **Connection** — 100% open-ended, spoken aloud. No comparison, no sound: nothing is
+  stored, so nothing can be matched. Do not "fix" this with multiple-choice cards.
+- **The Menu** — selection only. Both players answer a round of ten **blind** (neither
+  sees the other's answers while answering), then **everything opens**, mismatches
+  included. Blind is about stopping *anchoring*, not about hiding: an answer given
+  after seeing your partner's measures courtesy, not preference.
+- **Truth or Dare** — two buttons, the phone moves. ⭐ **The layer balance mechanic:**
+  both start with the same number of items on; every strip dare names *whose* clothing
+  comes off; the engine refuses any dare that would open a gap wider than 1, and
+  prefers whoever is currently ahead. Some dares cost the holder. **Net: you both
+  arrive at the same place at the same time, or nobody does.**
+- **Kindling** — kissing, touching, erotic play. A thing to do, not a thing to say.
+
+---
+
+## ⭐ Role — DOM / SUB / SWITCH
+
+Set per person, next to the name. It is not a label: cards carry a **perspective**
+(`dom` / `sub` / `any`) and your role decides which pool you draw from. *"Hold their
+wrists and use only your mouth"* is a DOM card; *"have your wrists held"* is the SUB
+card. Without it, the corpus can only ever be written from one side — which is why
+half of the old deck read wrong for one person.
+
+---
+
+## ⭐ Limits — two different jobs wearing one word
+
+**The list** — both players rate every act on a five-word scale, **sequentially and
+hidden** (he answers, answers hide, she answers). Each act is scored as the **sum:**
+
+| Answer | Points |
+|---|---|
+| Yes now | 5 |
+| Yes | 4 |
+| Interested | 3 |
+| Not really | 2 |
+| Hard No | 1 |
+
+**Sum ≤ 4 → hidden. Sum ≥ 5 → shown.** Two Hard Nos (2), two Not-reallys (4) and every
+Hard No + Not really (3) combination all fall below the line. The result is **two
+columns with each of your names as the header.** Reset button wipes both.
+
+**The veto** — a Hard No is *not* the bottom of a preference scale. It is absolute.
+A Hard No removes every matching card from all three games and **cannot be outvoted**.
+So `Hard No + Yes now = 6` is *shown on the list* — you see the clash — but the card
+is never dealt. That is the point: you learn what you each want, and nothing lands on
+a hard limit at round eleven.
+
+**Vetoes apply to actions, not questions.** The Connection deck is conversation and is
+never filtered.
+
+---
+
+## The sounds — three, and only three
+
+| Outcome | Sound |
+|---|---|
+| Yes + Yes | **match** — bright rising arpeggio |
+| Yes + Maybe | **close** — warm, unresolved |
+| Maybe + Maybe | **both maybe** — playful bounce |
+| Yes + Not for me | **silence**, with a plain *"Mismatch"* label |
+| anything else | silence |
+
+**A sound for everything is a sound for nothing.** A mismatch is information, not a
+win. `pick` / `thisor` matches say **"Same answer"**, never "you both said yes".
 
 ---
 
 ## ⛔ Excluded, permanently
 
-**Standing limits, not preferences.** No card contains any of them and none may
-be added:
-
-- **oral–genital contact**, any direction — including inside the SYP deck
-- **anal**, any act
-- **a third person** as a required act
-- **anything requiring her to invent a scenario from nothing**
-
-If a future card needs a limit list, the limit wins and the card is cut.
-
----
-
-## Rules the app enforces
-
-1. **PASS costs nothing and needs no reason.** No score, no tally, nothing
-   recorded about who passed.
-2. **Heat is a ceiling, not a target.** *Hot* includes Warm and Hot. Nothing
-   above the chosen tier can appear.
-3. **Person-scoped cards never leak.** `for:'him'` cannot be drawn by HER and
-   vice versa — verified, 0 leaks across the full sweep.
-4. **Cards do not repeat for the same person** until the deck is spent.
-5. **PASS withdraws your answer.** Passing a card after selecting an option
-   deletes it — a card you passed is not a card you answered, and it will not
-   show up in someone else's comparison.
-6. **The reveal waits for DONE.** Nothing from your partner appears on screen
-   until you have committed.
-7. **Sound only on the three outcomes above.** A mismatch, a *Not for me*, or an
-   open card reveals in silence.
-
----
-
-## Heat tiers
-
-| Tier | Label | What lives there |
-|---|---|---|
-| 1 | **Warm** | Notices, compliments, first kisses, hands, hair |
-| 2 | **Hot** | Body, wanting, undressing, deliberate touch, hands inside clothing |
-| 3 | **Hottest** | Being told, control, blindfolds, held wrists, waiting |
+**Standing limits, not preferences.** No card contains any of them and none may be
+added: oral–genital contact in any direction · anal in any form · a third person as a
+required act · anything requiring the other person to invent a scenario from nothing.
+Mouth on the **body** only — ears, throat, neck, collarbone, chest, stomach, wrists,
+fingers. These outrank every card.
 
 ---
 
 ## Running it
 
-No build step. No dependencies. No network calls. No analytics. No accounts.
+No build step. No dependencies.
 
 ```bash
 cd /config/pwa/ember
 python3 -m http.server 8791
-# open http://127.0.0.1:8791/
 ```
 
-State lives in `localStorage` only — seen-lists, answers, last deck, heat,
-round type. Nothing leaves the device.
+State lives in `localStorage`: seen-lists, session, answers, names, roles, limits.
 
----
-
-## Verifying before a push
+### Verifying before a push
 
 ```bash
 bash check.sh
 ```
 
-Validates every `.js` **as ESM** and scans for glued punctuation.
+Validates every `.js` **as ESM**, scans for glued punctuation, checks required files,
+and asserts `version.js` matches `version.json`.
 
-> ⚠️ **Why it exists:** on 2026-10-27 a patch ate a newline in a sibling project,
-> gluing a comment rule onto a closing brace. The module failed to parse, no
-> event listeners attached, and the start button looked dead. `node --check
-> app.js` returned **exit 0** on that broken file, because the `import` makes
-> Node bail as CommonJS before reaching the syntax error.
+> `node --check app.js` returns **exit 0** on broken module code — the `import` makes
+> Node bail as CommonJS before reaching the real error. `.mjs` or nothing.
 
-It also **verifies `version.js` matches `version.json`** — it caught a live
-mismatch on 2026-10-27 during this build.
-
-### Deploy checklist
+### Deploy
 
 1. `bash check.sh` → must print `PASS`
-2. Bump `CACHE` in `sw.js` on **every** deploy
+2. Bump `CACHE` in `sw.js` **every** deploy
 3. Bump `version.js` **and** `version.json` together
-4. Push, wait ~60 s, fetch the **live** URL — not the local file
+4. Push `main`, wait ~60 s, fetch the **live** URL
 
-**Live at:** `https://kclampo.github.io/ember/` · **repo:** `kclampo/ember`
-
-Hosting is **Pages, "Deploy from a branch" → `main` → `/ (root)`.** Every push
-to `main` goes live; there is no build step and nothing to configure.
-
-> ⚠️ **Why branch-deploy and not a Pages workflow:** a workflow's `GITHUB_TOKEN`
-> can *deploy* to an existing Pages site but **cannot create one** — GitHub
-> returns `Resource not accessible by integration`, and `configure-pages` with
-> `enablement: true` fails at that exact step. The local PAT has no `pages`
-> scope either (403 on `PUT /repos/.../pages`). Enabling Pages is therefore a
-> one-time human click, and `check.yml` runs the gate independently so a gate
-> failure is never confused with a deploy failure.
+Hosting is **Pages → Deploy from a branch → `main` → `/ (root)`**. A workflow's
+`GITHUB_TOKEN` can *deploy* to an existing Pages site but **cannot create one** —
+`configure-pages` with `enablement: true` fails with `Resource not accessible by
+integration`. Enabling Pages is a one-time human click; `check.yml` runs the gate
+independently so a gate failure never looks like a deploy failure.
 
 ---
 
 ## Adding cards
 
 ```js
-{ t:2, a:'would', pitch:'Would you want this?', q:'Your prompt here.' }
-{ t:3, a:'pick', q:'Your prompt here.', opts:['A','B','C'] }
-{ t:2, a:'open', q:'Your prompt here.', for:'her' }
+{ t:2, a:'would', q:'Being held down — hands only, easy release.' }
+{ t:2, a:'pick',  q:'Where first?', opts:['Neck','Mouth','Chest'] }
+{ t:3, q:'Hold their wrists.', as:'dom' }
+{ t:2, q:'Remove one item.', layer:{ who:'partner', n:1 } }
 ```
 
-Re-run `check.sh` and re-check the question-deck open percentage.
-**⚠️ Prefer `would` / `pick` / `thisor` over `open`.**
+`as` is `'any'` unless the card's direction is the content. `layer.who` is one of
+`self` · `partner` · `both` · `self-they-choose` · `partner-they-choose` ·
+`partner-you-choose`, written from the holder's point of view.
+
+Then re-run `check.sh`.
 
 ---
 
-## Open questions
+## Open
 
-- **⛔ Only 55 of 170 cards can be compared.** The comparison — and therefore
-  every sound — only fires on `would` (15), `pick` (26), `thisor` (11) and
-  `scale` (3). The other **115 are `open`**, answered out loud, with nothing to
-  store and nothing to compare. So most draws end in silence by design. This is
-  the single biggest product gap: *the game's payoff is reachable on a third of
-  the deck.* The fix is not more cards, it is more `would`/`pick` — and it is a
-  corpus change, not a code change, so it can happen any time.
-- **No mute.** Sound is on and there is no toggle. `audio.js` already exposes
-  `setMuted()` / `isMuted()`; wiring a button is a ten-minute job if it is ever
-  wanted.
-- **No way to add your own cards yet** — every custom card means editing
-  `deck.js`. A "write your own" screen is the obvious next feature.
-- **Two devices would need a sync layer.** Today it is one phone passed back
-  and forth, which is what the overlap mechanic assumes. A comparison that
-  needs both people on one phone is fine at a kitchen table and useless if one
-  of you is travelling.
+- **18 limit acts, 4 with no card yet** (toys, impact, degradation, photo). The veto is
+  inert for those until cards exist.
+- **Limit matching is regex over card text**, not an explicit tag. It is auditable —
+  `L.verify(CARDS)` prints the match count per act — but a reworded card can silently
+  stop matching. Explicit tags on cards would be sturdier.
+- **No sync.** One phone passed back and forth. "Blind" means *they didn't look*, which
+  is trust, not cryptography.

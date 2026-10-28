@@ -24,8 +24,16 @@
       <span class="flame" aria-hidden="true"></span>
       <h1>Ember</h1>
     </div>
-    <span id="version" class="ver">v—</span>
+    <div class="hdr-right">
+      <button id="limitsBtn" class="hdrBtn">Limits</button>
+      <span id="version" class="ver">v—</span>
+    </div>
   </header>
+
+  <nav class="tabs">
+    <button id="tabQuestions" class="tab on">Questions</button>
+    <button id="tabGames" class="tab">Games</button>
+  </nav>
 
   <!-- ---------------------------------------------------- SETUP -->
   <section id="setup" class="panel">
@@ -34,42 +42,61 @@
     <select id="deckSel" class="sel"></select>
     <p id="deckBlurb" class="blurb"></p>
 
-    <div id="subWrap" class="sub" hidden>
-      <label class="lbl" id="subLabel">Round type</label>
-      <div class="seg" id="subSeg"></div>
+    <div id="tierWrap" class="sub">
+      <label class="lbl" id="tierLabel">Level</label>
+      <div class="seg" id="tierSeg"></div>
+      <p class="hint" id="tierHint"></p>
     </div>
 
-    <label class="lbl">Heat</label>
-    <div class="seg" id="heatSeg">
-      <button class="segbtn" data-heat="1">Warm</button>
-      <button class="segbtn on" data-heat="2">Hot</button>
-      <button class="segbtn" data-heat="3">Hottest</button>
+    <div id="ttdStatus" class="ttdStatus" hidden>
+      <p id="ttdLine" class="ttdLine"></p>
+      <p id="ttdLayers" class="hint"></p>
     </div>
-    <p class="hint">Pressing a heat level includes everything below it. Nothing above it can appear.</p>
 
-    <div class="who">
+    <div class="who" id="whoWrap">
       <button id="himBtn" class="whoBtn him"><span class="wholbl">HIM</span><span class="whosub" id="himSub">draw for him</span></button>
       <button id="herBtn" class="whoBtn her"><span class="wholbl">HER</span><span class="whosub" id="herSub">draw for her</span></button>
+    </div>
+
+    <div class="who" id="tdWrap" hidden>
+      <button id="truthBtn" class="whoBtn truth"><span class="wholbl">TRUTH</span><span class="whosub">answer</span></button>
+      <button id="dareBtn" class="whoBtn dare"><span class="wholbl">DARE</span><span class="whosub">do it</span></button>
+    </div>
+
+    <div id="menuWrap" hidden>
+      <button id="startRoundBtn" class="done wide">Start a round — 10 cards</button>
+      <p class="hint">You both answer the same ten. Neither sees the other until you are both done.</p>
     </div>
 
     <div class="names">
       <div class="nameRow">
         <label class="lbl" for="himName">Him</label>
         <input id="himName" class="nameIn" type="text" maxlength="24" placeholder="Him"
-               autocomplete="off" autocapitalize="none" spellcheck="false" />
+               autocomplete="off" autocapitalize="words" spellcheck="false" />
+        <select id="himRole" class="roleSel">
+          <option value="dom">DOM</option>
+          <option value="sub">SUB</option>
+          <option value="switch" selected>SWITCH</option>
+        </select>
       </div>
       <div class="nameRow">
         <label class="lbl" for="herName">Her</label>
         <input id="herName" class="nameIn" type="text" maxlength="24" placeholder="Her"
-               autocomplete="off" autocapitalize="none" spellcheck="false" />
+               autocomplete="off" autocapitalize="words" spellcheck="false" />
+        <select id="herRole" class="roleSel">
+          <option value="dom">DOM</option>
+          <option value="sub">SUB</option>
+          <option value="switch" selected>SWITCH</option>
+        </select>
       </div>
-      <p class="hint">Whatever you type here is what the app calls you. It stays on this
-        phone and is never sent anywhere. Blank just uses Him / Her.</p>
+      <p class="hint">Whatever you type is what the app calls you. It stays on this phone and
+        is never sent anywhere. Role decides which side of a card you get dealt.</p>
     </div>
 
     <div class="meta">
       <span id="remain"></span>
-      <button id="resetBtn" class="link">reset seen</button>
+      <button id="newGameBtn" class="link">new game</button>
+      <button id="resetQBtn" class="link">reset questions</button>
     </div>
   </section>
 
@@ -91,13 +118,45 @@
       <button id="passBtn" class="pass">PASS</button>
       <button id="doneBtn" class="done">DONE</button>
     </div>
-    <p class="hint2">Pass costs nothing and needs no reason. There is no score.</p>
+    <p class="hint2" id="cardHint">Pass costs nothing and needs no reason.</p>
+  </section>
+
+  <!-- ---------------------------------------------------- MENU RATING -->
+  <section id="rateView" class="panel" hidden>
+    <p class="rateTop"><strong id="rateWho"></strong> · <span id="rateProgress"></span></p>
+    <p id="ratePitch" class="pitch" hidden></p>
+    <p id="rateQ" class="q"></p>
+    <div id="rateOpts" class="opts"></div>
+    <p class="hint2">Nobody sees these until you are both done.</p>
+  </section>
+
+  <!-- ---------------------------------------------------- HANDOFF -->
+  <section id="handoffView" class="panel" hidden>
+    <p class="q" id="handoffMsg"></p>
+    <button id="handoffBtn" class="done wide">Continue</button>
+  </section>
+
+  <!-- ---------------------------------------------------- MENU RESULTS -->
+  <section id="resultView" class="panel" hidden>
+    <p class="q">What you both said</p>
+    <p class="hint" id="resultSub"></p>
+    <div id="resultList" class="resList"></div>
+    <button id="resultDone" class="done wide">Done</button>
+  </section>
+
+  <!-- ---------------------------------------------------- LIMITS -->
+  <section id="limitsView" class="panel" hidden>
+    <div class="limitsHead">
+      <span class="lbl" style="margin:0">Limits</span>
+      <button id="limitsClose" class="link">close</button>
+    </div>
+    <div id="limitsBody"></div>
   </section>
 
   <!-- ---------------------------------------------------- EMPTY -->
   <section id="emptyView" class="panel" hidden>
-    <p class="q">That deck is spent at this heat.</p>
-    <button id="againBtn" class="done wide">Reset and start over</button>
+    <p class="q" id="emptyMsg">That deck is spent.</p>
+    <button id="againBtn" class="done wide">Start over</button>
   </section>
 
 </main>
