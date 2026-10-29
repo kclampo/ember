@@ -101,7 +101,7 @@ export const NOISH = new Set(['Not for me', 'Hard no']);
 
 const P = 'Would you want this?';
 
-/* ═══════════════════════════════════════════════════ 1 · CONNECTION (48)
+/* ═══════════════════════════════════════════════════ 1 · CONNECTION (79)
  * 100% open. Nothing is stored, so nothing can be compared — this deck has no
  * sound by design. The tier is how much THINKING the honest answer costs.
  * ═══════════════════════════════════════════════════════════════════════════ */
@@ -167,6 +167,48 @@ const CONNECTION = [
      questions. Pass is free on this tab if one lands wrong. */
   { t:2, q:'Could you pick your partner\'s cock or pussy out of a lineup?' },
   { t:2, q:'If a million dollars depended on getting your partner off inside five minutes, could you do it — and how?' },
+
+  /* ═══════════ v1.3.11 — Consider ═══════════
+     ⚠️ NOTHING AT THE NOTICE LEVEL. "all the notice Q are trash" (2026-10-28) —
+     the proposed tier-1 set was struck wholesale, so Notice stays at its original
+     16. These all start at Consider. */
+  { t:2, q:'What is the fastest way to get them in the mood — honestly, not flatteringly?' },
+  { t:2, q:'What does it look like when they want you and will not say so?' },
+  { t:2, q:'What is something they think is subtle and absolutely is not?' },
+  { t:2, q:'What is one thing you have learned about them in the last month?' },
+  { t:2, q:'What is the most useful thing you do for them that they never notice?' },
+  { t:2, q:'What is something they want for themselves that has nothing to do with you?' },
+  { t:2, q:'What would you defend them about to anyone, but have never told them?' },
+  { t:2, q:'What is the last thing you got wrong about them?' },
+  { t:2, q:'What is something you two do that you would be embarrassed to explain to another couple?' },
+  { t:2, q:'What would they say is the hardest thing about being with you?' },
+  { t:2, q:'What do you do differently now than a year ago, because of them?' },
+  { t:2, q:'Who knows the most about your relationship, and what do they know?' },
+
+  /* ═══════════ v1.3.11 — Admit ═══════════ */
+  { t:3, q:'What is something you have quietly decided you will never get from them?' },
+  { t:3, q:'What do you need that you are embarrassed to need?' },
+  { t:3, q:'When have you chosen something over them and told yourself it was for them?' },
+  { t:3, q:'What is the thing you are most afraid will end this, and what are you actually doing about it?' },
+  { t:3, q:'What have you done that you would not want them to know you did?' },
+  { t:3, q:'What do you think they would say if someone asked what is wrong with you?' },
+  { t:3, q:'What is the one thing about this relationship you would not want their closest friend to know?' },
+  { t:3, q:'What have you said about them to someone else that you would not say to their face?' },
+  { t:3, q:'What is the one thing you would want them to do if you were gone tomorrow, and have you told them?' },
+
+  /* ═══════════ v1.3.11 — if one of us dies ═══════════
+     ⭐ 2026-10-28: "Maybe more about family planning post death of one of us is in
+     order." Practical and unglamorous on purpose — the point is whether either of
+     you could actually function, not how you feel about it. Every one is answerable
+     with a fact you either know or do not. */
+  { t:2, q:'If I died tomorrow, would you know where everything is — the accounts, the passwords, the will?' },
+  { t:2, q:'Do you know who my insurance pays, and is that still what I want?' },
+  { t:2, q:'Is there anything only I know how to do in this house that I have never written down?' },
+  { t:2, q:'Have we ever said out loud what happens to this house?' },
+  { t:3, q:'If we both went at once, who have we actually told — in words — that we want looking after things?' },
+  { t:3, q:'What would you want me to do with your things, specifically?' },
+  { t:3, q:'Who would you call first, and would I know their number?' },
+  { t:3, q:'What is the one thing you would want me to keep, out of everything we own?' },
 ];
 
 /* ═══════════════════════════════════════════════════ 2 · THE MENU (66)
