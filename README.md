@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.9 · **360 cards** · **repo:** `kclampo/ember`
+**Version:** 1.3.10 · **360 cards** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -47,9 +47,9 @@ spent.
 
 | Deck | Tab | Cards | Tiers |
 |---|---|---|---|
-| **Connection** | Questions | 48 | Notice → Consider → Admit |
+| **Connection** | Questions | 50 | Notice → Consider → Admit |
 | **The Menu** | Questions | 74 | Familiar → Specific → Edge |
-| **Truth or Dare** | Games | 127 | rounds 1–5 / 6–11 / 12–17 / 18+ |
+| **Truth or Dare** | Games | 125 | rounds 1–5 / 6–11 / 12–17 / 18+ |
 | **Kindling** | Games | 111 | Spark → Flame → Blaze → Inferno |
 
 ### Tier labels are per-deck

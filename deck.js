@@ -159,6 +159,14 @@ const CONNECTION = [
   { t:3, q:'What would you take back if you could — and what stops you saying so?' },
   { t:3, q:'What do you need to hear from them that you would never ask them to say?' },
   { t:3, q:'If the next year went exactly like the last one, what would you change first?' },
+
+  /* ═══════════ v1.3.10 — how well you actually know each other ═══════════
+     ⭐ Both are CONVERSATION, not dares: the answer is a spoken thing you know or
+     do not know about your partner. Connection is cumulative and never filtered
+     by a veto — that is correct here, because a hard no governs ACTS, not
+     questions. Pass is free on this tab if one lands wrong. */
+  { t:2, q:'Could you pick your partner\'s cock or pussy out of a lineup?' },
+  { t:2, q:'If a million dollars depended on getting your partner off inside five minutes, could you do it — and how?' },
 ];
 
 /* ═══════════════════════════════════════════════════ 2 · THE MENU (66)
@@ -361,8 +369,12 @@ const TRUTHS = [
   { t:2, q:'Where is a place you have always wanted to have passionate sex?' },
   { t:3, q:'Could you handle a night where the roles were swapped, and you were in the other one?' },
   { t:3, q:'Would you watch porn with your partner? If so, what kind?' },
-  { t:3, q:'Who would be on your celebrity hall pass list?' },
-  { t:3, q:'Could you pick your partner\'s cock or pussy out in a lineup?' },
+  /* ⛔ hall pass DROPPED (2026-10-28: "drop hall pass"). It invited a roster of
+     other people into the room and gave nothing back — the lineup card below does
+     the same job and is actually about the two of you.
+     ⚠️ The lineup card MOVED to Connection — "how well do we know each other's
+     parts" is a knowing-each-other question, not a dare, and Connection is where
+     that register lives. */
   { t:4, q:'What is a sex act you have always wanted to try but are afraid your partner would judge?' },
   { t:4, q:'What is a secret about your sex life your partner does not know?' },
   { t:4, q:'What is something you have wanted to say to your partner but are afraid it would hurt them?' },
