@@ -1,4 +1,4 @@
 {
-  "version": "1.3.11",
-  "notes": "Connection grows from 50 to 79. Nothing was added at the Notice level — that whole proposed set was struck. Twelve Consider and nine Admit cards went in, plus eight on what happens if one of us dies: paperwork, passwords, insurance, the house, who is actually told what to do. Connection is the one deck that never refills itself, so each card here extends a lifetime ceiling rather than a session's."
+  "version": "1.4.0",
+  "notes": "A third tab: Positions. Not a deck — a map. 156 positions and 426 transitions harvested from sexinfo101.com's own taxonomy, so every way out is a move their page actually names rather than one this app invented. You say where you are; it shows you three ways out of it, one per family, so the doors are three different shapes instead of three variations of the one you are in. Tap a position to open their illustrated guide. Nothing is drawn, spent, tiered or scored, and nothing is counted — the moment it counts it becomes a checklist. Each position carries a LOAD: how much it asks of the person underneath. New Tonight switch to go with it — Gentle tonight caps the map at easy, which is the one toggle the app was missing. Limits and Tonight both filter it, and neither can ever add back what a hard no took away."
 }

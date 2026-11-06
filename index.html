@@ -34,6 +34,13 @@
   <nav class="tabs">
     <button id="tabQuestions" class="tab on">Questions</button>
     <button id="tabGames" class="tab">Games</button>
+    <!-- ⭐ A THIRD TAB, AND THE ONLY ONE THAT IS NOT A DECK. A position is a
+         stage you are standing in, not a card you draw: it has no tier, it is
+         not spent when used, and the only thing it does is show you where you
+         can go next. Two tabs worked because they remembered differently; this
+         one is here because it is a different KIND of thing, not a third
+         memory. -->
+    <button id="tabPositions" class="tab">Positions</button>
   </nav>
 
   <!-- ---------------------------------------------------- SETUP -->
@@ -188,6 +195,17 @@
       <button id="stageStayBtn" class="pass">STAY</button>
       <button id="stageUpBtn" class="next">MOVE UP</button>
     </div>
+  </section>
+
+  <!-- ---------------------------------------------------- POSITIONS -->
+  <!-- The map. Body is built in app.js because every child of it depends on
+       which exits survive tonight's filters. -->
+  <section id="posView" class="panel" hidden>
+    <p id="posWhere" class="posWhere"></p>
+    <h2 id="posName" class="posName"></h2>
+    <p id="posMeta" class="posMeta"></p>
+    <p id="posHint" class="hint"></p>
+    <div id="posBody" class="posBody"></div>
   </section>
 
   <!-- ---------------------------------------------------- EMPTY -->

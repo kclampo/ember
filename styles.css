@@ -397,6 +397,39 @@ body {
 .done { background: var(--hot); color: #1a0f0b; border-color: var(--hot); }
 .done.wide { flex: none; width: 100%; }
 
+/* ---------------------------------------------------------- positions (v1.4.0) */
+.posWhere {
+  margin: 2px 2px 6px; font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dim);
+}
+.posName {
+  margin: 0 2px 4px; font: 600 26px/1.15 ui-serif, Georgia, serif;
+  letter-spacing: .01em;
+}
+.posMeta { margin: 0 2px 2px; font-size: 12px; color: var(--dim); }
+.posBody { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; }
+/* the one external link in the app. It leaves for sexinfo101 and comes back. */
+.posLink {
+  display: inline-block; align-self: flex-start;
+  margin: 2px 0 6px; padding: 9px 14px;
+  border: 1px solid rgba(224,96,58,.55); border-radius: 10px;
+  color: var(--hot2); font-size: 12.5px; letter-spacing: .04em;
+  text-decoration: none;
+}
+.posLink:active { background: rgba(224,96,58,.14); }
+.posNode, .posExit {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 14px 16px; text-align: left;
+  background: var(--bg2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 11px;
+  font-size: 15px; cursor: pointer; transition: .14s;
+}
+/* a way out is marked on its leading edge so the list reads as movement */
+.posExit { border-left: 3px solid rgba(224,96,58,.5); }
+.posNode:active, .posExit:active { transform: scale(.985); background: rgba(224,96,58,.10); }
+.posNodeSub { font-size: 11px; color: var(--dim); letter-spacing: .03em; }
+.posNav { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }

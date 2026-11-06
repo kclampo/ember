@@ -2,7 +2,7 @@
 
 A deck for two. On-device only — no accounts, no network, no analytics.
 
-**Version:** 1.3.11 · **389 cards** · **repo:** `kclampo/ember`
+**Version:** 1.4.0 · **389 cards** · **156 positions** · **repo:** `kclampo/ember`
 **Live:** https://kclampo.github.io/ember/
 
 ---
@@ -25,12 +25,13 @@ roles: **Him / Her**.
 
 ---
 
-## ⭐ Two tabs, and they remember differently
+## ⭐ Three tabs, and they remember differently
 
-| Tab | Decks | Persistence |
+| Tab | What is in it | Persistence |
 |---|---|---|
 | **Questions** | Connection · **The Menu** | **kept forever** + a Reset button |
 | **Games** | Truth or Dare · Kindling | **12-hour session** + a New game button |
+| **Positions** | the map — 156 nodes, 426 edges | **the day** — resets at midnight, like Tonight |
 
 A connection question is **spent** the moment it is answered — re-asking it later is a
 replay with a contaminated answer. A game card is **not spent**; it is as good the
@@ -51,6 +52,9 @@ spent.
 | **The Menu** | Questions | 74 | Familiar → Specific → Edge |
 | **Truth or Dare** | Games | 125 | rounds 1–5 / 6–11 / 12–17 / 18+ |
 | **Kindling** | Games | 111 | Spark → Flame → Blaze → Inferno |
+
+**The third tab is not a deck.** Positions has no cards, no tiers and no persistence
+rules of its own — see **Positions — a map, not a list** below.
 
 ### Tier labels are per-deck
 
@@ -205,6 +209,7 @@ Open it from the **TONIGHT** button in the header:
 | **No tying** | rope, restraint |
 | **No blindfold** | blindfold |
 | **No dressing up** | costume |
+| **Gentle tonight** ⭐ | every **position** above easy — see below; the one switch that is a ceiling rather than a subtraction |
 
 ### ⛔ It can only ever SUBTRACT
 
@@ -359,6 +364,73 @@ A Menu round mid-flight also resumes into the rating view on reload.
 
 ---
 
+## ⭐ Positions — a map, not a list (v1.4.0)
+
+A third tab. It shares no machinery with the decks: nothing is drawn, spent,
+tiered, revealed or scored.
+
+**156 nodes · 426 edges.** The node set and **every edge** are harvested from
+[sexinfo101.com](https://sexinfo101.com/positions)'s published taxonomy and its
+per-position *Transitions* block. **No adjacency is invented.** If Cowgirl offers
+The Usual, it is because that page names it.
+
+### Why a graph and not a deck
+
+A position is not "hotter" than another — it is a **different stage you can reach
+from where you are**. Bolting positions onto Kindling's ladder would have to fake
+a tier for "Spoon", which is not less hot than anything, it is just comfortable.
+Median out-degree across the corpus is **3**, which is where "three ways out" comes
+from: it is the data, not a taste.
+
+**Three ways out**, one per family before any family repeats, so the doors are
+three different shapes instead of three variations of the one you are in. If
+filtering thins the list, it backfills by tag similarity — ⛔ **a single option is
+not a choice, it is an instruction**, so the minimum is three and it is enforced
+across every filter state (verified at 156 nodes × 4 filter combinations).
+
+### `load` — the one thing this app adds
+
+Their tags give who is on top, entry angle, posture and access. **They have no
+comfort axis**, so `load` is derived here from four mechanisms:
+
+| Term | Reading |
+|---|---|
+| **depth** | woman-on-top 0 · neither 1 · **man-on-top 2** (who sets it) |
+| **support** | lying 0 · sitting/kneeling 1 · standing/bridged 2 |
+| **effort** | woman active or on top, not lying → 1 |
+| **abduction** | twisted entry → 1 |
+| **flex** | folded / tucked / butterfly / oystered / facedown / stacked → 1 |
+
+`l 1` raw ≤1 · `l 2` raw ≤2 · `l 3` raw ≥3 — shown as **easy / steady / deep**.
+
+> ⚠️ **It is an ordering, not a measurement.** No units, no clinical precision.
+> Depth control dominates because when she sets the distance, she stops before it
+> hurts. **Sorting positions by heat sorts someone into pain**; this is sorted by
+> what it asks of the person underneath.
+
+**GENTLE TONIGHT** caps the map at `l 2`. It carries an empty `off` list on
+purpose: it is the only switch whose job is a ceiling, so it never touches a deck.
+
+### Exits are filtered, never authored
+
+`posOpen(id)` refuses a node for two reasons and both only ever say no: the load
+ceiling, and any required act being off **for the person who would actually do
+it** — `a` is per person, not a flat list. Cunnilingus needs **him** to give and
+**her** to receive; fellatio the reverse; 69 needs both from both. A flat list
+would close cunnilingus for someone who only objected to *giving*, which is the
+same mistake the deck's `acts:{holder,other}` map exists to prevent.
+
+### ⛔ No counters
+
+Nothing counts positions tried, nothing streaks, nothing scores. It is not a
+checklist and nobody is marked against it.
+
+**Links, not copies.** Each node deep-links their illustrated page and opens it in
+a new tab. No prose and no imagery is bundled — position names are generic and the
+attributes are facts, so what is reused is a **taxonomy**, not a work.
+
+---
+
 ## The sounds — three, and only three
 
 | Outcome | Sound |
@@ -375,13 +447,20 @@ win. `pick` / `thisor` matches say **"Same answer"**, never "you both said yes".
 
 ---
 
-## ⛔ Excluded, permanently
+## ⛔ Excluded, permanently — and what came OFF this list
 
-**Standing limits, not preferences.** No card contains any of them and none may be
-added: oral–genital contact in any direction · anal in any form · a third person as a
-required act · anything requiring the other person to invent a scenario from nothing.
-Mouth on the **body** only — ears, throat, neck, collarbone, chest, stomach, wrists,
-fingers. These outrank every card.
+**Still excluded, no card and no node contains them:** a third person as a
+required act · anything requiring the other person to invent a scenario from
+nothing. Mouth on the **body** remains the default register for the decks.
+
+> ⚠️ **This section was wrong and is corrected here (v1.4.0).** It used to say
+> *"oral–genital contact in any direction · anal in any form … and none may be
+> added."* **Four such cards had already shipped in v1.3.7 by request** — oral
+> and anal, both directions, gated by `oral_give · oral_receive · anal_give ·
+> anal_receive` and evaluated **per person at draw time**. The code and the
+> README disagreed for four releases, and the README was the one that was wrong.
+> **A comment that contradicts the code is worse than no comment**, because it
+> gets believed.
 
 ---
 

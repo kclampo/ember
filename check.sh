@@ -48,7 +48,7 @@ else
 fi
 
 echo "== required files =="
-for f in index.html styles.css app.js deck.js limits.js audio.js version.js sw.js manifest.json icon.svg icon-192.png icon-512.png icon-maskable-512.png apple-touch-icon.png; do
+for f in index.html styles.css app.js deck.js limits.js positions.js audio.js version.js sw.js manifest.json icon.svg icon-192.png icon-512.png icon-maskable-512.png apple-touch-icon.png; do
   [ -f "$f" ] && echo "  OK   $f" || { echo "  MISSING $f"; fail=1; }
 done
 
@@ -70,6 +70,37 @@ if (dupes.length)      { console.log('  FAIL duplicate ids:', dupes.slice(0,5).j
 if (positional.length) { console.log('  FAIL positional ids:', positional.slice(0,3).map(c=>c.id).join(' ')); process.exit(1); }
 if (notHash.length)    { console.log('  FAIL not content-derived:', notHash.slice(0,3).map(c=>c.id).join(' ')); process.exit(1); }
 console.log('  OK   content-derived and unique');
+" || fail=1
+
+echo "== positions graph invariants =="
+# ⛔ The map is the whole feature. A dangling edge is a button that does nothing,
+# a load outside 1..3 breaks the Tonight ceiling, and a map with no load-1 node
+# makes GENTLE TONIGHT empty the screen. All three are silent in the browser, so
+# they are gated here.
+node --input-type=module -e "
+import { NODES, STARTERS, COUNT, EDGE_COUNT, urlOf } from './positions.js';
+const ids = Object.keys(NODES);
+const dangling = [];
+for (const [id, n] of Object.entries(NODES)) for (const e of n.x) if (!NODES[e]) dangling.push(id + ' -> ' + e);
+const selfLoop = ids.filter(id => NODES[id].x.includes(id));
+const badLoad = ids.filter(id => ![1,2,3].includes(NODES[id].l));
+const noName  = ids.filter(id => !NODES[id].n || !NODES[id].f);
+const byLoad = {1:0,2:0,3:0};
+for (const id of ids) byLoad[NODES[id].l]++;
+const badStart = STARTERS.filter(s => !NODES[s]);
+const early = ids.filter(id => NODES[id].x.length === 0);
+console.log('  nodes =', COUNT, '· edges =', EDGE_COUNT, '· load1/2/3 =', byLoad[1] + '/' + byLoad[2] + '/' + byLoad[3]);
+if (dangling.length)  { console.log('  FAIL dangling edges:', dangling.slice(0,4).join(' | ')); process.exit(1); }
+if (selfLoop.length)  { console.log('  FAIL self-loop:', selfLoop.slice(0,4).join(' ')); process.exit(1); }
+if (badLoad.length)   { console.log('  FAIL load not 1..3:', badLoad.slice(0,4).join(' ')); process.exit(1); }
+if (noName.length)    { console.log('  FAIL node missing name/family:', noName.slice(0,4).join(' ')); process.exit(1); }
+if (badStart.length)  { console.log('  FAIL starter not a node:', badStart.slice(0,4).join(' ')); process.exit(1); }
+if (byLoad[1] < 3)    { console.log('  FAIL fewer than 3 easy nodes - GENTLE would empty the map'); process.exit(1); }
+if (!urlOf(ids[0]).startsWith('https://sexinfo101.com/positions/')) { console.log('  FAIL url builder'); process.exit(1); }
+/* a node with no edge is not a failure - the app backfills by tag similarity on
+   purpose. It is reported so the number stays visible. */
+console.log('  OK   no dangling edges, no self-loops, loads valid');
+console.log('  NOTE nodes with no published transition (backfilled):', early.length, early.slice(0,4).join(' '));
 " || fail=1
 
 echo "== version consistency =="

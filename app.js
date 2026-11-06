@@ -17,6 +17,9 @@
  */
 
 import { CARDS, DECKS, TIERS, TABS, WOULD_OPTS, NOISH, LEGACY_IDS, stageForRound } from './deck.js';
+/* ⭐ THE POSITION GRAPH (v1.4.0). 156 nodes, 426 harvested edges. It is not a
+   deck: nothing here is drawn, spent, tiered or scored. */
+import { NODES, STARTERS, COUNT as POS_COUNT, node as posNode, urlOf, similarity } from './positions.js';
 import { APP_VERSION } from './version.js';
 import { match, close, bothMaybe, scaleMatch, scaleClose, ding } from './audio.js';
 import * as L from './limits.js';
@@ -29,6 +32,7 @@ const LS = {
   session: 'ember.session', limits: 'ember.limits', tab: 'ember.tab',
   limitsrt: 'ember.limitsrt',
   tonight: 'ember.tonight',
+  pos: 'ember.pos',
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -56,6 +60,13 @@ const TONIGHT_SWITCHES = [
     off: ['blindfold'] },
   { id: 'nodress', label: 'No dressing up tonight',
     off: ['costume'] },
+  /* ⭐ GENTLE TONIGHT (v1.4.0). The switch the app was missing: every other
+     toggle names a thing to take away, and none of them could say "I am sore".
+     ⛔ It carries NO `off` list on purpose - it is the only switch whose job is
+     a CEILING, not a subtraction, so it caps what the Positions map will offer
+     at load 2 and leaves every deck untouched. `off: []` keeps it readable by
+     tonightOffActs(), which walks `s.off` and would throw on undefined. */
+  { id: 'gentle',  label: 'Gentle tonight — nothing past easy', off: [], cap: 2 },
 ];
 
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
@@ -115,7 +126,7 @@ function nameOf(p) {
 function roleOf(p) { return state.roles[p] || 'switch'; }
 
 /* ══════════════════════════════════════════════════ view plumbing */
-const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'tonightView', 'stageView', 'emptyView'];
+const VIEWS = ['setup', 'cardView', 'rateView', 'handoffView', 'resultView', 'limitsView', 'tonightView', 'stageView', 'posView', 'emptyView'];
 function show(which) {
   stopTimer();          // a timer must never outlive the card that started it
   for (const v of VIEWS) $(v).hidden = (v !== which);
@@ -389,11 +400,18 @@ $('version').textContent = 'v' + APP_VERSION;
 function paintTabs() {
   $('tabQuestions').classList.toggle('on', state.tab === 'questions');
   $('tabGames').classList.toggle('on', state.tab === 'games');
+  $('tabPositions').classList.toggle('on', state.tab === 'positions');
 }
 $('tabQuestions').addEventListener('click', () => setTab('questions'));
 $('tabGames').addEventListener('click', () => setTab('games'));
+$('tabPositions').addEventListener('click', () => setTab('positions'));
 function setTab(t) {
   state.tab = t; save(LS.tab, t); paintTabs();
+  /* ⭐ Positions is the one tab that is NOT a deck, so it must return BEFORE any
+     of the deck plumbing runs. Letting it fall through would filter DECKS by
+     tab==='positions' (an empty list), pick decks[0].id off nothing, and put an
+     empty <select> on screen. */
+  if (t === 'positions') { openPositions(); return; }
   const decks = DECKS.filter(d => d.tab === t);
   state.qdeck = (t === 'questions') ? 'connection' : (state.qdeck && DECKS.find(d => d.id === state.qdeck && d.tab === 'games') ? state.qdeck : decks[0].id);
   buildDeckSel();
@@ -1297,12 +1315,231 @@ $('againBtn').addEventListener('click', () => {
   show('setup'); paintSetup();
 });
 
+/* ══════════════════════════════════════════════════ POSITIONS (v1.4.0)
+ * A map, not a deck. You are standing somewhere; it shows you where you can
+ * go from there. Nothing is drawn, spent, tiered or scored.
+ *
+ * ⛔ NO COUNTERS, EVER. Not "tried", not "tonight you did 3", not a streak.
+ * The moment it counts anything it becomes a checklist, and a checklist is
+ * something a person can be marked against.
+ */
+const LOAD_LABEL = { 1: 'easy', 2: 'steady', 3: 'deep' };
+/* family ids are lowercase slugs ('doggystyle', 'lap-dance'). They are shown to
+   a human, so they get title-cased. */
+const famLabel = f => f.replace(/-/g, ' ').replace(/(^|\s)\S/g, c => c.toUpperCase());
+/* the second line under a position. The family is only worth printing when it
+   is not the name — "69 / 69 · steady" and "Cowgirl / cowgirl · steady" read as
+   a bug, and the redundant half tells you nothing. */
+function posSub(id) {
+  const n = NODES[id];
+  const fam = famLabel(n.f);
+  const bits = [];
+  if (fam.toLowerCase() !== String(n.n).toLowerCase()) bits.push(fam);
+  bits.push(LOAD_LABEL[n.l]);
+  return bits.join(' · ');
+}
+/* UI-only: whether the exit list is showing all of them or the first three.
+   Deliberately not persisted - every arrival starts at three. */
+let posExpanded = false;
+
+function posState() {
+  if (!state.pos || state.pos.date !== today() || !Array.isArray(state.pos.hist)) {
+    state.pos = { date: today(), cur: null, hist: [] };
+    save(LS.pos, state.pos);
+  }
+  /* a node can disappear between builds; never leave a dangling marker */
+  if (state.pos.cur && !NODES[state.pos.cur]) { state.pos.cur = null; state.pos.hist = []; }
+  state.pos.hist = state.pos.hist.filter(h => NODES[h]);
+  return state.pos;
+}
+
+/* the ceiling tonight. 3 = no cap. GENTLE TONIGHT drops it to 2.
+   ⛔ It can only lower - a switch must never raise what a Limit withheld. */
+function posLoadCap() {
+  const t = tonight();
+  let cap = 3;
+  for (const s of TONIGHT_SWITCHES) if (s.cap && t.on.includes(s.id)) cap = Math.min(cap, s.cap);
+  return cap;
+}
+
+/* may this position be OFFERED tonight. Two refusals, both only ever say no:
+   the load ceiling, and any required act being off for the person who would
+   actually be doing it. `a` is directional - cunnilingus needs HIM to give and
+   HER to receive, so a refusal to give does not close a position that only asks
+   you to receive. A position is shared, so one person's refusal withholds it. */
+function posOpen(id) {
+  const n = NODES[id];
+  if (!n) return false;
+  if (n.l > posLoadCap()) return false;
+  const a = n.a || {};
+  for (const who of ['him', 'her']) {
+    for (const act of (a[who] || [])) if (actIsOff(who, act)) return false;
+  }
+  return true;
+}
+
+/* every exit that survives tonight, in the order sexinfo101 publishes them */
+function posAllExits(id) {
+  const n = posNode(id);
+  if (!n) return [];
+  return [...new Set(n.x)].filter(e => e !== id && posOpen(e));
+}
+
+/* ⭐ THREE WAYS OUT. Real edges first, and one per family before any family
+   repeats, so the three doors are three different SHAPES rather than three
+   variations of the one you are in. Backfilled by tag similarity if a heavy
+   night thins the list.
+   ⛔ A single option is not a choice, it is an instruction - hence the minimum
+   of three and the backfill that guarantees it. */
+function posExits(id, want = 3) {
+  const real = posAllExits(id);
+  const out = [], fams = new Set();
+  for (const e of real) {
+    if (out.length >= want) break;
+    if (fams.has(NODES[e].f)) continue;
+    fams.add(NODES[e].f); out.push(e);
+  }
+  for (const e of real) {
+    if (out.length >= want) break;
+    if (!out.includes(e)) out.push(e);
+  }
+  if (out.length < want) {
+    const pool = Object.keys(NODES)
+      .filter(e => e !== id && !out.includes(e) && posOpen(e))
+      .sort((a, b) => similarity(id, b) - similarity(id, a) || NODES[a].l - NODES[b].l || a.localeCompare(b));
+    for (const e of pool) { if (out.length >= want) break; out.push(e); }
+  }
+  return out;
+}
+
+function posGo(id) {
+  const s = posState();
+  posExpanded = false;
+  if (s.cur) { s.hist.push(s.cur); if (s.hist.length > 8) s.hist.shift(); }
+  s.cur = id; save(LS.pos, s); paintPos();
+}
+
+function posBack() {
+  const s = posState();
+  posExpanded = false;
+  s.cur = s.hist.length ? s.hist.pop() : null;
+  save(LS.pos, s); paintPos();
+}
+
+function openPositions() {
+  recomputeBlocked();          // limits may have changed since the map was drawn
+  paintPos();
+}
+
+function paintPos() {
+  show('posView');
+  const s = posState();
+  const cap = posLoadCap();
+  const body = $('posBody');
+  body.replaceChildren();
+
+  const guideLink = id => {
+    const a = document.createElement('a');
+    a.className = 'posLink';
+    a.href = urlOf(id);
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = 'Open the guide';
+    return a;
+  };
+
+  /* ---- no position chosen yet: the doors in */
+  if (!s.cur) {
+    $('posWhere').textContent = 'Positions';
+    $('posName').textContent = 'Where are you?';
+    $('posMeta').textContent = POS_COUNT + ' positions · every one is a place you can move from';
+    $('posHint').textContent = cap < 3
+      ? 'Pick where you are and the app shows three ways out. Gentle is on tonight, so the heavier ones are not offered.'
+      : 'Pick where you are and the app shows three ways out of it. This is a map, not a list - you only ever see what you can reach from here.';
+    for (const id of STARTERS) {
+      if (!posOpen(id)) continue;
+      const b = btn(NODES[id].n, 'posNode', () => posGo(id));
+      const sub = document.createElement('span');
+      sub.className = 'posNodeSub';
+      sub.textContent = posSub(id);
+      b.appendChild(sub);
+      body.appendChild(b);
+    }
+    if (!body.children.length) {
+      const p = document.createElement('p');
+      p.className = 'hint2';
+      p.textContent = 'Everything is switched off tonight. Check Tonight and Limits.';
+      body.appendChild(p);
+    }
+    body.appendChild(btn('Show me one', 'link', () => {
+      const p = allPick();
+      if (p) posGo(p);
+    }));
+    return;
+  }
+
+  /* ---- standing in a position */
+  const n = posNode(s.cur);
+  const openTonight = posOpen(s.cur);
+  $('posWhere').textContent = 'Positions · ' + n.f;
+  $('posName').textContent = n.n;
+  $('posMeta').textContent = 'load ' + n.l + ' · ' + LOAD_LABEL[n.l] + (cap < 3 ? ' · gentle is on' : '');
+
+  if (!openTonight) {
+    $('posHint').textContent = 'That one is off tonight — the load ceiling or a limit moved under you. Pick another.';
+    body.appendChild(btn('Start again', 'done wide', () => { const st = posState(); st.cur = null; st.hist = []; save(LS.pos, st); paintPos(); }));
+    body.appendChild(btn('Back', 'pass wide', posBack));
+    return;
+  }
+
+  $('posHint').textContent = 'Three ways out of here.';
+  body.appendChild(guideLink(s.cur));
+
+  /* one per family first, so the three doors are three different shapes.
+     `all` is the full surviving set; `shown` is what the list opens with. */
+  const all = posAllExits(s.cur);
+  const shown = posExpanded ? all : posExits(s.cur, 3);
+  for (const e of shown) {
+    const b = btn(NODES[e].n, 'posExit', () => posGo(e));
+    const sub = document.createElement('span');
+    sub.className = 'posNodeSub';
+    sub.textContent = posSub(e);
+    b.appendChild(sub);
+    body.appendChild(b);
+  }
+  if (posExpanded && all.length > 3) {
+    body.appendChild(btn('Just three again', 'link', () => { posExpanded = false; paintPos(); }));
+  } else if (all.length > shown.length) {
+    body.appendChild(btn('All ' + all.length + ' ways out of this one', 'link', () => {
+      posExpanded = true; paintPos();
+    }));
+  }
+
+  const nav = document.createElement('div');
+  nav.className = 'posNav';
+  nav.appendChild(btn('Back', 'pass', posBack));
+  nav.appendChild(btn('Start again', 'link', () => { const st = posState(); st.cur = null; st.hist = []; save(LS.pos, st); paintPos(); }));
+  body.appendChild(nav);
+}
+
+/* a random open node - the "I do not know, show me one" door */
+function allPick() {
+  const pool = Object.keys(NODES).filter(posOpen);
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 /* ══════════════════════════════════════════════════ boot */
 migrateStoredIds();          // translate pre-1.3.3 ids BEFORE anything reads BLOCKED
 recomputeBlocked();
 paintTabs();
 buildDeckSel();
 paintSetup();
+
+/* ⭐ Restore the Positions tab on a reload. The deck plumbing above has already
+   painted the setup panel, so this replaces it. A Menu round that was mid-flight
+   (below) still wins, because resuming an answered round beats restoring a tab. */
+if (state.tab === 'positions') openPositions();
 
 /* resume a Menu round that was mid-flight — it lives in its own store now */
 if (state.menu && state.menu.round) {
@@ -1316,4 +1553,4 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck, blockedFor, availableFor, openTonight, paintTonight, tonightOffActs, actIsOff, TONIGHT_SWITCHES };
+export const __test = { state, verdictOf, LIMITS: L, drawSimple, drawTD, drawFor: drawSimple, currentTier, getSession, freshSession, startMenuRound, paintRate, paintResults, finishMenuRound, openLimits, paintLimits, recomputeBlocked, blockedSet: () => BLOCKED, nameOf, roleOf, gameDone, gameNext, gamePass, tdFinish, kindlingTick, paintStagePrompt, paintTimer, stopTimer, tierPool, renderCard, currentDeck, blockedFor, availableFor, openTonight, paintTonight, tonightOffActs, actIsOff, TONIGHT_SWITCHES, NODES, STARTERS, posState, posOpen, posLoadCap, posAllExits, posExits, posGo, posBack, openPositions, paintPos, allPick };
